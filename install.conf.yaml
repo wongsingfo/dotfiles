@@ -3,8 +3,6 @@
 - clean: ['~']
 
 - link:
-    ~/.bash_logout: bash_logout
-    ~/.bashrc: bashrc
     ~/.gitconfig: gitconfig
     ~/.profile: profile
     ~/.tmux.conf: tmux.conf
