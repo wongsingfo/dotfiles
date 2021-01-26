@@ -1,3 +1,5 @@
+# documentation: https://github.com/anishathalye/dotbot#configuration
+
 - clean: ['~']
 
 - link:
