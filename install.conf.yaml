@@ -3,11 +3,12 @@
 - clean: ['~']
 
 - link:
-    ~/.profile: profile
-    ~/.bashrc: bashrc
     ~/.bash_logout: bash_logout
+    ~/.bashrc: bashrc
     ~/.gitconfig: gitconfig
+    ~/.profile: profile
     ~/.tmux.conf: tmux.conf
+    ~/.vimrc: vimrc
     ~/.zshenv: zshenv
     ~/.zshrc: zshrc
 
