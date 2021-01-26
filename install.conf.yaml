@@ -4,7 +4,6 @@
 
 - link:
     ~/.gitconfig: gitconfig
-    ~/.profile: profile
     ~/.tmux.conf: tmux.conf
     ~/.vimrc: vimrc
     ~/.zshenv: zshenv
