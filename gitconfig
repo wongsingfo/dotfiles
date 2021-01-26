@@ -3,3 +3,5 @@
 	email = wongck@pku.edu.cn
 [color]
 	ui = auto
+[core]
+	editor = vim
