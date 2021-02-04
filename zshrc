@@ -129,7 +129,8 @@ function precmd() {
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+test -f ~/.fzf.zsh && source ~/.fzf.zsh
+test -f "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
 command -v thefuck >/dev/null 2>&1 && eval $(thefuck --alias)
 
