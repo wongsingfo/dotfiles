@@ -123,6 +123,30 @@ function precmd() {
 
 RPROMPT='%F{cyan}$(if [ $elapsed ]; then echo "$elapsed "; fi)$(date "+%m-%d %T")%F{none}'
 
+# Go up directory tree X number of directories
+# http://orangesplotch.com/bash-going-up/
+function up() {
+	COUNTER="$@";
+	# default $COUNTER to 1 if it isn't already set
+	if [[ -z $COUNTER ]]; then
+		COUNTER=1
+	fi
+	# make sure $COUNTER is a number
+	if [ $COUNTER -eq $COUNTER 2> /dev/null ]; then
+		nwd=`pwd` # Set new working directory (nwd) to current directory
+		# Loop $nwd up directory tree one at a time
+		until [[ $COUNTER -lt 1 ]]; do
+			nwd=`dirname $nwd`
+			let COUNTER-=1
+		done
+		cd $nwd # change directories to the new working directory
+	else
+		# print usage and return error
+		echo "usage: up [NUMBER]"
+		return 1
+	fi
+}
+
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
