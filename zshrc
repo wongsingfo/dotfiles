@@ -94,14 +94,14 @@ source $ZSH/oh-my-zsh.sh
 # https://gist.github.com/knadh/123bca5cfdae8645db750bfb49cb44b0
 
 function preexec() {
-  timer=$(date +%s%3N)
+  timer=$(($(print -P %D{%s%6.})/1000))
 }
 
 function precmd() {
   # add a newline after each command
   print ""
   if [ $timer ]; then
-    local now=$(date +%s%3N)
+    local now=$(($(print -P %D{%s%6.})/1000))
     local d_ms=$(($now-$timer))
     local d_s=$((d_ms / 1000))
     local ms=$((d_ms % 1000))
@@ -115,10 +115,13 @@ function precmd() {
     else elapsed=${ms}ms
     fi
 
-    export RPROMPT="%F{cyan}${elapsed} %{$reset_color%}"
     unset timer
+  else
+    unset elapsed
   fi
 }
+
+RPROMPT='%F{cyan}$(if [ $elapsed ]; then echo "$elapsed "; fi)$(date "+%m-%d %T")%F{none}'
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
