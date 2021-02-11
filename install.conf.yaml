@@ -2,11 +2,19 @@
 
 - clean: ['~']
 
+- create:
+    - ~/.config
+    - ~/.vim/autoload
+
 - link:
     ~/.gitconfig: gitconfig
     ~/.tmux.conf: tmux.conf
     ~/.vimrc: vimrc
     ~/.zshenv: zshenv
     ~/.zshrc: zshrc
+    ~/.config/nvim: nvim
+    ~/.vim/autoload/plug.vim:
+        path: plug.vim
+        force: true
 
 
