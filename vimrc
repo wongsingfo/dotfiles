@@ -1,4 +1,10 @@
 syntax on " highlight syntax
+
+" https://vim.fandom.com/wiki/Omni_completion
+" Press <C-x><C-o>
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
+
 set number " show line numbers
 set hlsearch " highlight all results
 set ignorecase " ignore case in search
@@ -22,7 +28,7 @@ Plug 'easymotion/vim-easymotion'
 call plug#end()
 
 " Shortcut for NERDTree
-nnoremap <C-n> :NERDTreeToggle<CR>
+nnoremap <C-t> :NERDTreeToggle<CR>
 
 " Automatically displays all buffers when there's only one tab open.
 let g:airline#extensions#tabline#enabled = 1
