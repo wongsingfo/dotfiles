@@ -25,7 +25,12 @@ Plug 'preservim/nerdtree'
 Plug 'vim-airline/vim-airline'
 " Vim motions on speed!
 Plug 'easymotion/vim-easymotion'
+" quoting/parenthesizing made simple
+Plug 'tpope/vim-surround'
 call plug#end()
+
+" Emmet trigger key. Enter , after the leader key
+let g:user_emmet_leader_key='<C-Y>'
 
 " Shortcut for NERDTree
 nnoremap <C-t> :NERDTreeToggle<CR>
