@@ -27,6 +27,8 @@ Plug 'vim-airline/vim-airline'
 Plug 'easymotion/vim-easymotion'
 " quoting/parenthesizing made simple
 Plug 'tpope/vim-surround'
+" cscope
+Plug 'dr-kino/cscope-maps'
 call plug#end()
 
 " Emmet trigger key. Enter , after the leader key
