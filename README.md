@@ -7,7 +7,7 @@ Dotfiles need to be easy to manage and udpate. Here are some amazing management 
 - [rcm](https://github.com/thoughtbot/rcm)
 - [dotbot](https://github.com/anishathalye/dotbot)
 
-## Learn from Other's Configurations
+## Learn from Others' Configurations
 
 - https://github.com/anishathalye/dotfiles
 - https://github.com/thoughtbot/dotfiles
