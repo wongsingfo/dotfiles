@@ -6,9 +6,11 @@ filetype plugin on
 set omnifunc=syntaxcomplete#Complete
 
 set number " show line numbers
+set relativenumber
 set hlsearch " highlight all results
 set ignorecase " ignore case in search
 set incsearch " show search results as you type
+set nowrap
 
 " change leader key
 let mapleader = "'"
@@ -24,11 +26,13 @@ Plug 'preservim/nerdtree'
 " lean & mean status/tabline for vim that's light as air
 Plug 'vim-airline/vim-airline'
 " Vim motions on speed!
-Plug 'easymotion/vim-easymotion'
+" Plug 'easymotion/vim-easymotion'
 " quoting/parenthesizing made simple
 Plug 'tpope/vim-surround'
 " cscope
 Plug 'dr-kino/cscope-maps'
+" Toggle comment
+Plug 'chrisbra/vim-commentary'
 call plug#end()
 
 " Emmet trigger key. Enter , after the leader key
