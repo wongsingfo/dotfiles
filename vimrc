@@ -13,7 +13,7 @@ set incsearch " show search results as you type
 set nowrap
 
 " change leader key
-let mapleader = "'"
+let mapleader = ","
 
 " reload vimrc
 nnoremap <Leader>vr :source $MYVIMRC<CR>
@@ -33,6 +33,26 @@ Plug 'tpope/vim-surround'
 Plug 'dr-kino/cscope-maps'
 " Toggle comment
 Plug 'chrisbra/vim-commentary'
+" Text object  di,
+Plug 'kana/vim-textobj-user'
+Plug 'kana/vim-textobj-indent'
+Plug 'kana/vim-textobj-syntax'
+Plug 'kana/vim-textobj-function', { 'for':['c', 'cpp', 'vim', 'java'] }
+Plug 'sgur/vim-textobj-parameter'
+" Diff
+if has('nvim') || has('patch-8.0.902')
+  Plug 'mhinz/vim-signify'
+else
+  Plug 'mhinz/vim-signify', { 'branch': 'legacy' }
+endif
+" Linting
+Plug 'dense-analysis/ale'
+" <ctrl>+P search
+" - Install the C extension of the fuzzy matching algorithm
+Plug 'Yggdroot/LeaderF', { 'do': ':LeaderfInstallCExtension' }
+" auto generate ctags files
+" https://ctags.io/
+Plug 'ludovicchabant/vim-gutentags'
 call plug#end()
 
 " Emmet trigger key. Enter , after the leader key
@@ -43,4 +63,29 @@ nnoremap <C-t> :NERDTreeToggle<CR>
 
 " Automatically displays all buffers when there's only one tab open.
 let g:airline#extensions#tabline#enabled = 1
+
+" ale config
+let g:airline#extensions#ale#enabled = 1
+let g:ale_echo_msg_format = '[%linter%] %code: %%s'
+let g:ale_c_build_dir_names = ['build', 'bin', 'cmake-build-debug']
+
+" No background color for sign column
+highlight clear SignColumn
+" Merge number column and sign column
+" set signcolumn=number
+
+" ctags
+set tags=./.tags;,.tags
+
+" gutentags
+let g:gutentags_project_root = ['.root', '.svn', '.git', '.project']
+let g:gutentags_ctags_tagfile = '.tags'
+let s:vim_tags = expand('~/.cache/tags')
+let g:gutentags_cache_dir = s:vim_tags
+let g:gutentags_ctags_extra_args = ['--fields=+niazS', '--extra=+q']
+let g:gutentags_ctags_extra_args += ['--c++-kinds=+px']
+let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
+if !isdirectory(s:vim_tags)
+   silent! call mkdir(s:vim_tags, 'p')
+endif
 
