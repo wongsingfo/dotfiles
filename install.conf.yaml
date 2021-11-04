@@ -17,4 +17,11 @@
         path: plug.vim
         force: true
 
+- shell:
+    -
+        command: vim +'PlugInstall --sync' +qa
+        description: Install vim plugins
+        stderr: true
+        stdout: true
+
 
