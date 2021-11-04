@@ -10,10 +10,12 @@ set relativenumber
 set hlsearch " highlight all results
 set ignorecase " ignore case in search
 set incsearch " show search results as you type
+set showcmd
 set nowrap
 
 " change leader key
-let mapleader = ","
+" let mapleader = ","
+let mapleader = "\<Space>"
 
 " reload vimrc
 nnoremap <Leader>vr :source $MYVIMRC<CR>
@@ -26,8 +28,10 @@ Plug 'preservim/nerdtree'
 " lean & mean status/tabline for vim that's light as air
 Plug 'vim-airline/vim-airline'
 " Vim motions on speed!
-" Plug 'easymotion/vim-easymotion'
-" quoting/parenthesizing made simple
+Plug 'easymotion/vim-easymotion'
+" Vim motions (with key s)
+Plug 'justinmk/vim-sneak'
+" quoting/parenthesizing made simple ysaW{
 Plug 'tpope/vim-surround'
 " cscope
 Plug 'dr-kino/cscope-maps'
@@ -47,10 +51,10 @@ else
 endif
 " Linting
 Plug 'dense-analysis/ale'
-" <ctrl>+P search
-" - Install the C extension of the fuzzy matching algorithm
+" <leader>b / <leader>f: search buffer / files
+" Also install the C extension of the fuzzy matching algorithm
 Plug 'Yggdroot/LeaderF', { 'do': ':LeaderfInstallCExtension' }
-" auto generate ctags files
+" Auto generate ctags files
 " https://ctags.io/
 Plug 'ludovicchabant/vim-gutentags'
 call plug#end()
