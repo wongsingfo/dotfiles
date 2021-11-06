@@ -12,10 +12,16 @@ set ignorecase " ignore case in search
 set incsearch " show search results as you type
 set showcmd
 set nowrap
+set smarttab
 
 " change leader key
 " let mapleader = ","
 let mapleader = "\<Space>"
+
+func MyTab4()
+  " https:/jstackoverflow.com/questions/1878974/redefine-tab-as-4-spaces
+  set tabstop=8 softtabstop=0 expandtab shiftwidth=4
+endfunc
 
 " vr: vim reload
 nnoremap <Leader>vr :source $MYVIMRC<CR>
@@ -66,7 +72,7 @@ Plug 'skywind3000/asyncrun.vim'
 " C++ Syntax highlighting
 Plug 'octol/vim-cpp-enhanced-highlight'
 " YCM
-" Plug 'ycm-core/YouCompleteMe'
+Plug 'ycm-core/YouCompleteMe'
 call plug#end()
 
 " Emmet trigger key. Enter , after the leader key
@@ -87,6 +93,12 @@ let g:ale_c_build_dir_names = ['build', 'bin', 'cmake-build-debug']
 highlight clear SignColumn
 " Merge number column and sign column
 " set signcolumn=number
+
+highlight PMenu ctermfg=0 ctermbg=242 guifg=black guibg=darkgrey
+highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
+
+" Leaderf
+nnoremap <Leader>mru :LeaderfMru<CR>
 
 " ctags
 set tags=./.tags;,.tags
@@ -122,3 +134,21 @@ let g:cpp_member_variable_highlight = 1
 let g:cpp_class_scope_highlight = 1
 let g:cpp_posix_standard = 1
 let g:cpp_class_decl_highlight = 1
+
+" YCM
+let g:ycm_filetype_whitelist = { 
+\ 'c': 1,
+\ 'cc': 1,
+\ 'cpp': 1,
+\ 'h': 1,
+\ 'rs': 1,
+\ 'sh': 1,
+\ 'go': 1,
+\}
+let g:ycm_show_diagnostics_ui = 0
+let g:ycm_min_num_identifier_candidate_chars = 2
+let g:ycm_semantic_triggers =  {
+			\ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
+			\ 'cs,lua,javascript': ['re!\w{2}'],
+			\ }
+
