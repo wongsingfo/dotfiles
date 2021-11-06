@@ -17,8 +17,12 @@ set nowrap
 " let mapleader = ","
 let mapleader = "\<Space>"
 
-" reload vimrc
+" vr: vim reload
 nnoremap <Leader>vr :source $MYVIMRC<CR>
+" pi: plug install
+nnoremap <Leader>pi :PlugInstall<CR>
+
+let g:my_project_root = ['.svn', '.git', '.root', '_darcs', 'build.xml']
 
 call plug#begin('~/.vim/plugged')
 " Emmet for vim
@@ -57,6 +61,12 @@ Plug 'Yggdroot/LeaderF', { 'do': ':LeaderfInstallCExtension' }
 " Auto generate ctags files
 " https://ctags.io/
 Plug 'ludovicchabant/vim-gutentags'
+" AsyncRun
+Plug 'skywind3000/asyncrun.vim'
+" C++ Syntax highlighting
+Plug 'octol/vim-cpp-enhanced-highlight'
+" YCM
+" Plug 'ycm-core/YouCompleteMe'
 call plug#end()
 
 " Emmet trigger key. Enter , after the leader key
@@ -82,7 +92,7 @@ highlight clear SignColumn
 set tags=./.tags;,.tags
 
 " gutentags
-let g:gutentags_project_root = ['.root', '.svn', '.git', '.project']
+let g:gutentags_project_root = g:my_project_root
 let g:gutentags_ctags_tagfile = '.tags'
 let s:vim_tags = expand('~/.cache/tags')
 let g:gutentags_cache_dir = s:vim_tags
@@ -93,3 +103,22 @@ if !isdirectory(s:vim_tags)
    silent! call mkdir(s:vim_tags, 'p')
 endif
 
+" Signify diff
+nnoremap <Leader>di :SignifyDiff<CR>
+
+" Asynrun
+let g:asyncrun_open = 6  " window height 
+let g:asyncrun_bell = 1
+" Compile single file
+" nnoremap <F9> :AsyncRun gcc -Wall -O2 "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
+" Run 
+" nnoremap <F5> :AsyncRun -raw -cwd=$(VIM_FILEDIR) "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
+let g:asyncrun_rootmarks = g:my_project_root
+" Make
+nnoremap <Leader>mk :AsyncRun -cwd=<root> make<CR>
+
+" C++ hightlight
+let g:cpp_member_variable_highlight = 1
+let g:cpp_class_scope_highlight = 1
+let g:cpp_posix_standard = 1
+let g:cpp_class_decl_highlight = 1
