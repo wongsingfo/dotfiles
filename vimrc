@@ -8,11 +8,19 @@ set omnifunc=syntaxcomplete#Complete
 set number " show line numbers
 set relativenumber
 set hlsearch " highlight all results
+" highlight Search ctermbg=Yellow cterm=underline
+" set showmatch
+highlight MatchParen ctermbg=DarkYellow
 set ignorecase " ignore case in search
 set incsearch " show search results as you type
 set showcmd
 set nowrap
 set smarttab
+
+set cursorline
+
+" set foldmethod=syntax
+highlight Folded ctermbg=none
 
 " change leader key
 " let mapleader = ","
@@ -86,6 +94,11 @@ let g:airline#extensions#tabline#enabled = 1
 
 " ale config
 let g:airline#extensions#ale#enabled = 1
+" let g:ale_set_highlights = 0
+" highlight ALEError ctermbg=none cterm=underline
+highlight ALEError ctermbg=DarkRed
+highlight ALEWarning ctermbg=DarkMagenta
+" highlight ALEErrorSign ctermbg=DarkRed
 let g:ale_echo_msg_format = '[%linter%] %code: %%s'
 let g:ale_c_build_dir_names = ['build', 'bin', 'cmake-build-debug']
 
@@ -93,6 +106,9 @@ let g:ale_c_build_dir_names = ['build', 'bin', 'cmake-build-debug']
 highlight clear SignColumn
 " Merge number column and sign column
 " set signcolumn=number
+highlight SignifySignAdd ctermfg=green
+highlight SignifySignDelete ctermfg=red
+highlight SignifySignChange ctermfg=yellow
 
 highlight PMenu ctermfg=0 ctermbg=242 guifg=black guibg=darkgrey
 highlight PMenuSel ctermfg=242 ctermbg=8 guifg=darkgrey guibg=black
@@ -119,15 +135,18 @@ endif
 nnoremap <Leader>di :SignifyDiff<CR>
 
 " Asynrun
-let g:asyncrun_open = 6  " window height 
-let g:asyncrun_bell = 1
+let g:asyncrun_open = 10  " window height
+" let g:asyncrun_bell = 1
 " Compile single file
 " nnoremap <F9> :AsyncRun gcc -Wall -O2 "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
-" Run 
+" Run
 " nnoremap <F5> :AsyncRun -raw -cwd=$(VIM_FILEDIR) "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" <cr>
 let g:asyncrun_rootmarks = g:my_project_root
 " Make
-nnoremap <Leader>mk :AsyncRun -cwd=<root> make<CR>
+nnoremap <Leader>cm :AsyncRun -cwd=<root> cmake -S . -B build<CR>
+nnoremap <Leader>mk :AsyncRun -cwd=<root> cmake --build build<CR>
+nnoremap <Leader>te :AsyncRun -cwd=<root> cmake --build build --target test<CR>
+nnoremap <Leader>py :!python3 %<CR>
 
 " C++ hightlight
 let g:cpp_member_variable_highlight = 1
@@ -136,7 +155,7 @@ let g:cpp_posix_standard = 1
 let g:cpp_class_decl_highlight = 1
 
 " YCM
-let g:ycm_filetype_whitelist = { 
+let g:ycm_filetype_whitelist = {
 \ 'c': 1,
 \ 'cc': 1,
 \ 'cpp': 1,
@@ -146,6 +165,10 @@ let g:ycm_filetype_whitelist = {
 \ 'go': 1,
 \}
 let g:ycm_show_diagnostics_ui = 0
+let g:ycm_enable_diagnostic_signs = 1
+let g:ycm_enable_diagnostic_highlighting = 0
+set completeopt=menu,menuone
+let g:ycm_add_preview_to_completeopt = 0
 let g:ycm_min_num_identifier_candidate_chars = 2
 let g:ycm_semantic_triggers =  {
 			\ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
