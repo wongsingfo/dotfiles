@@ -17,9 +17,16 @@
         path: plug.vim
         force: true
 
+- git:
+    '~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting':
+        url: 'https://github.com/zsh-users/zsh-syntax-highlighting.git'
+        description: 'Install zsh plugin: zsh-syntax-highlighting'
+    '~/.oh-my-zsh/custom/plugins/zsh-autosuggestions':
+        url: 'https://github.com/zsh-users/zsh-autosuggestions'
+        description: 'Install zsh plugin: zsh-autosuggestions'
+
+
 - shell:
     -
         command: vim +'PlugInstall --sync' +qa
         description: Install vim plugins
-
-
