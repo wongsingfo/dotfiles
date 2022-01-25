@@ -25,6 +25,8 @@ highlight Folded ctermbg=none
 " change leader key
 " let mapleader = ","
 let mapleader = "\<Space>"
+" The vim waits for 3000 ms
+set timeoutlen=3000
 
 func MyTab4()
   " https:/jstackoverflow.com/questions/1878974/redefine-tab-as-4-spaces
