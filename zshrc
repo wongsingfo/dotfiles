@@ -168,13 +168,9 @@ alias dirs="dirs -v"
 # git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 # ~/.fzf/install
 test -f ~/.fzf.zsh && source ~/.fzf.zsh
+# download and upload files from iterm2
 test -f "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
+# The fuck
 command -v thefuck >/dev/null 2>&1 && eval $(thefuck --alias)
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
-
-[ -e "/usr/local/texlive/2021/bin/x86_64-linux" ] && export PATH=/usr/local/texlive/2021/bin/x86_64-linux:$PATH
-
+# NVM bash
+[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"

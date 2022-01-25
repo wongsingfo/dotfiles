@@ -20,13 +20,18 @@
 - git:
     '~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting':
         url: 'https://github.com/zsh-users/zsh-syntax-highlighting.git'
-        description: 'Install zsh plugin: zsh-syntax-highlighting'
+        description: 'zsh plugin: zsh-syntax-highlighting'
     '~/.oh-my-zsh/custom/plugins/zsh-autosuggestions':
         url: 'https://github.com/zsh-users/zsh-autosuggestions'
-        description: 'Install zsh plugin: zsh-autosuggestions'
-
+        description: 'zsh plugin: zsh-autosuggestions'
+    '~/.fzf':
+        url: 'https://github.com/junegunn/fzf.git'
+        descirption: 'fzf for both zsh and bash'
 
 - shell:
     -
         command: vim +'PlugInstall --sync' +qa
         description: Install vim plugins
+    -
+        command: ~/.fzf/install --all
+        description: Install fzf
