@@ -12,7 +12,7 @@
     ~/.vimrc: vimrc
     ~/.zshenv: zshenv
     ~/.zshrc: zshrc
-    ~/.config/nvim: nvim
+    ~/.config/nvim: nvim-dotfile
     ~/.vim/autoload/plug.vim:
         path: plug.vim
         force: true
