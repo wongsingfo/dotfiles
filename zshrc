@@ -154,6 +154,12 @@ function up() {
 	fi
 }
 
+function proxy() {
+	https_proxy=http://127.0.0.1:7890 \
+		http_proxy=http://127.0.0.1:7890 \
+		"$@"
+}
+
 alias dirs="dirs -v"
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
