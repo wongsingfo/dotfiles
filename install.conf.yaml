@@ -9,6 +9,7 @@
 - link:
     ~/.gitconfig: gitconfig
     ~/.tmux.conf: tmux.conf
+    ~/.bashrc: bashrc
     ~/.vimrc: vimrc
     ~/.zshenv: zshenv
     ~/.zshrc: zshrc
@@ -27,6 +28,7 @@
     '~/.fzf':
         url: 'https://github.com/junegunn/fzf.git'
         description: 'fzf for both zsh and bash'
+# git clone git@github.com:jchook/ranger-zoxide.git ~/.config/ranger/plugins/zoxide
 
 - shell:
     -
