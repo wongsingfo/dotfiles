@@ -46,9 +46,7 @@ RUN cd /home/user/.dotfiles && \
 
 # RUN curl https://hishtory.dev/install.py | python3 -
 
-RUN curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && \
-	fisher install PatrickF1/fzf.fish && \
-	fzf_configure_bindings --directory=\cf
+RUN fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
 
 RUN sudo npm install -g neovim && \
 	pip install neovim && \
