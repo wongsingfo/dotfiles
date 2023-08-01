@@ -29,6 +29,7 @@ RUN apk upgrade --no-cache && apk add --no-cache \
 	ranger \
 	stow \
 	sudo \
+	tmux \
 	util-linux \
 	wget
 
@@ -48,7 +49,8 @@ RUN cd /home/user/.dotfiles && \
 
 RUN fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
 
+# The "sleep 10" is a workaround for https://github.com/nvim-treesitter/nvim-treesitter/issues/2900
 RUN sudo npm install -g neovim && \
 	pip install neovim && \
-	nvim --headless +"Lazy sync" +TSUpdateSync +"MasonUpdate" +qall
+	nvim --headless +"Lazy sync" +TSUpdateSync +"MasonUpdate" +"MasonInstall pyright" +"sleep 10" +qall
 
