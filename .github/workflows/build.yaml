@@ -4,8 +4,9 @@ on:
   push:
     paths:
       - 'Dockerfile'
-  # schedule:
-  #   - cron: "0 0 */3 * *"
+      - 'stow-dotfiles/**'
+  schedule:
+    - cron: "0 0 1 * *"
 
 jobs:
   docker:
