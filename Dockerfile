@@ -4,14 +4,19 @@ RUN apt-get update && apt-get install -y \
 	adduser \
 	curl \
 	fish \
+	fzf \
 	gcc \
 	git \
 	make \
 	nodejs \
 	npm \
 	python3 \
+	ranger \
 	stow \
 	sudo \
+	ssh \
+	tmux \
+	unzip \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
@@ -28,5 +33,5 @@ RUN fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main
 RUN curl -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
 
 # The "sleep *" is a workaround for https://github.com/nvim-treesitter/nvim-treesitter/issues/2900
-RUN nvim --headless +"Lazy sync" +"TSUpdateSync" +"MasonUpdate" +"MasonInstall pyright" +"MasonInstall clangd" +"sleep 20" +qall
+RUN nvim --headless +"Lazy restore" +"TSUpdateSync" +"MasonUpdate" +"MasonInstall pyright" +"MasonInstall clangd" +"sleep 20" +qall
 
