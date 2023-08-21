@@ -12,3 +12,14 @@ Dotfiles need to be easy to manage and udpate. Here are some amazing management 
 - https://github.com/anishathalye/dotfiles
 - https://github.com/thoughtbot/dotfiles
 
+## Docker
+
+```
+sudo apt install docker.io
+
+docker run -it --detach-keys='ctrl-e,e' -v $(pwd):/work --name box wongsingfo/dotfiles
+sudo su -c 'usermod -u 1004 ubuntu && groupmod -g 1004 ubuntu'
+rm -rf /tmp/fish.ubuntu
+
+docker start -i box
+```

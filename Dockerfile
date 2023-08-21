@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
 	ssh \
 	tmux \
 	unzip \
+	uuid-runtime \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
