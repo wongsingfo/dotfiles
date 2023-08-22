@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 	nodejs \
 	npm \
 	python3 \
+	python3-pynvim \
 	ranger \
 	stow \
 	sudo \
@@ -20,7 +21,8 @@ RUN apt-get update && apt-get install -y \
 	uuid-runtime \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
+RUN chsh -s /usr/bin/fish ubuntu && \
+addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
 
 USER ubuntu
 WORKDIR /work

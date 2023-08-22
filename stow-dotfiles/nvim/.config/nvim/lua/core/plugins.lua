@@ -85,6 +85,7 @@ require('lazy').setup({
 		"chentoast/marks.nvim",
 		opts = {},
 	},
+	{ "kevinhwang91/rnvimr" },
 
 	-- Completion
 	{
