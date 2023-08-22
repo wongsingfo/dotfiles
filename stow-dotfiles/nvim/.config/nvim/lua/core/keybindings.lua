@@ -159,10 +159,10 @@ for i = 1, 9 do
 	map('n', '<leader>n'..i, '<cmd>BufferLineGoToBuffer '..i..'<cr>', opt)
 end
 -- Tab naviagtion
-map('n', 'tj', '<cmd>tabnext<cr>', opt)
-map('n', 'tk', '<cmd>tabprevious<cr>', opt)
-map('n', 'tn', '<cmd>tabnew<cr>', opt)
-map('n', 'tc', '<cmd>tabclose<cr>', opt)
+-- use gt and gT to navigate tabs
+-- use <n>gt to go to the n-th tab
+map('n', '<leader>tn', '<cmd>tabnew<cr>', opt)
+map('n', '<leader>tc', '<cmd>tabclose<cr>', opt)
 -- Window resizer
 vim.g.winresizer_start_key = '<leader>ww'
 -- Neomux
@@ -181,6 +181,9 @@ map('n', '<leader>pp', '<cmd>set paste<cr>"*p<cmd>set nopaste<cr>', opt)
 -- Lazygit
 -- https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Keybindings_en.md
 map('n', '<leader>lg', '<cmd>LazyGit<cr>', opt)
+
+-- Rnvimr (ranger)
+map('n', '<leader>ra', '<cmd>RnvimrToggle<cr>', opt)
 
 wk.register({
 	["<c-n>"] = "NvimTreeToggle",
