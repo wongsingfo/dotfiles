@@ -234,7 +234,7 @@ require('lazy').setup({
 				}),
 				formatting = {
 					format = lspkind.cmp_format({
-						mode = "symbol",
+						mode = "text",
 						max_width = 50,
 						symbol_map = {
 							Copilot = "",

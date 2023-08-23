@@ -2,7 +2,9 @@ FROM ubuntu:23.04
 
 RUN apt-get update && apt-get install -y \
 	adduser \
+	cmake \
 	curl \
+	dumb-init \
 	fish \
 	fzf \
 	gcc \
@@ -13,6 +15,7 @@ RUN apt-get update && apt-get install -y \
 	python3 \
 	python3-pynvim \
 	ranger \
+	ripgrep \
 	stow \
 	sudo \
 	ssh \
@@ -26,6 +29,7 @@ addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >
 
 USER ubuntu
 WORKDIR /work
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["fish"]
 
 COPY --chown=ubuntu:ubuntu ./stow-dotfiles /home/ubuntu/.dotfiles
