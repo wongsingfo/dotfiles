@@ -5,6 +5,7 @@ on:
     paths:
       - 'Dockerfile'
       - 'stow-dotfiles/**'
+      - '.github/**'
   schedule:
     - cron: "0 0 1 * *"
 
