@@ -46,7 +46,7 @@ wk.register({
 -- If there is no definition, it will instead be hidden
 -- When you use an action in finder like "open vsplit",
 -- you can use <C-t> to jump back
-keymap("n", "gr", "<cmd>Lspsaga lsp_finder<CR>")
+keymap("n", "gr", "<cmd>Lspsaga finder<CR>")
 
 -- Code action
 keymap({"n", "v"}, "<leader>gx", "<cmd>Lspsaga code_action<CR>")
@@ -136,7 +136,8 @@ map('n', '<c-p>', '<cmd>Telescope buffers<CR>', opt)
 map('n', '<leader>pf', '<cmd>Telescope find_files<CR>', opt)
 map('n', '<leader>pb', '<cmd>Telescope buffers<CR>', opt)
 map('n', '<leader>pg', '<cmd>Telescope live_grep<CR>', opt)
-map('n', '<leader>ps', '<cmd>Telescope grep_string<CR>', opt)
+map('n', '<leader>pw', '<cmd>Telescope grep_string<CR>', opt)
+map('n', '<leader>ps', '<cmd>Telescope lsp_document_symbols<CR>', opt)
 map('n', '<leader>pt', '<cmd>Telescope help_tags<CR>', opt)
 -- Diffview
 map('n', '<leader>pd', '<cmd>DiffviewOpen<CR>', opt)

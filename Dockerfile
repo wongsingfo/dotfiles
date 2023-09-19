@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
 	cmake \
 	curl \
 	dumb-init \
+	fd-find \
 	fish \
 	fzf \
 	gcc \

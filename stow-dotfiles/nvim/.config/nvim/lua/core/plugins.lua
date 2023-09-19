@@ -170,7 +170,11 @@ require('lazy').setup({
 			{
 				"nvimdev/lspsaga.nvim",
 				event = "LspAttach",
-				opts = {},
+				opts = {
+					outline = {
+						layout = 'float',
+					}
+				},
 			},
 		},
 	},

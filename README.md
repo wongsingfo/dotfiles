@@ -21,5 +21,5 @@ docker run -it -v $(pwd):/work --name box wongsingfo/dotfiles
 sudo su -c 'usermod -u 1004 ubuntu && groupmod -g 1004 ubuntu'
 rm -rf /tmp/fish.ubuntu
 
-docker start -i --detach-keys='ctrl-e,e' box
+docker start -i --detach-keys='ctrl-z,e' box
 ```
