@@ -29,6 +29,5 @@ jobs:
           tags: |
             wongsingfo/dotfiles:latest
             wongsingfo/dotfiles:amd64
-            # wongsingfo/dotfiles:arm64
           # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64
