@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
 	npm \
 	python3 \
 	python3-pynvim \
+	python3-venv \
 	ranger \
 	ripgrep \
 	stow \
