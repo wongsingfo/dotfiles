@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     paths:
-      - 'Dockerfile'
+      - '**Dockerfile'
       - 'stow-dotfiles/**'
       - '.github/**'
   schedule:
@@ -31,3 +31,4 @@ jobs:
             wongsingfo/dotfiles:amd64
           # platforms: linux/amd64,linux/arm64
           platforms: linux/amd64
+          file: ./base.Dockerfile

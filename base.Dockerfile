@@ -43,6 +43,6 @@ RUN curl -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux
 
 # The "sleep *" is a workaround for https://github.com/nvim-treesitter/nvim-treesitter/issues/2900
 RUN nvim --headless +"Lazy restore" +"TSUpdateSync" +"MasonUpdate" \
-	+"MasonInstall pyright" +"MasonInstall clangd" +"MasonInstall typescript-language-server" \
+	+"MasonInstall pyright" +"MasonInstall clangd" \
 	+"sleep 20" +qall
 

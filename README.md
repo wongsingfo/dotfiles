@@ -34,7 +34,7 @@ If you need to re-enter the container, execute the following:
 docker start -i --detach-keys='ctrl-z,e' box
 ```
 
-## Troubleshhot
+## Troubleshooting
 
 ### Permission Issues
 
