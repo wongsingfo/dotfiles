@@ -10,3 +10,9 @@ end
 if type -q fzf_configure_bindings
 	fzf_configure_bindings --directory=\co
 end
+
+# Check if $HOME/.cargo/bin is in $PATH
+if not string match -q -r "$HOME/.cargo/bin" $PATH
+    # If it's not in $PATH, add it
+    set -x PATH $PATH $HOME/.cargo/bin
+end

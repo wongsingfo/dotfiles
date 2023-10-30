@@ -24,10 +24,9 @@ RUN apt-get update && apt-get install -y \
 	tmux \
 	unzip \
 	uuid-runtime \
-	&& rm -rf /var/lib/apt/lists/*
-
-RUN chsh -s /usr/bin/fish ubuntu && \
-addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
+	&& rm -rf /var/lib/apt/lists/* && \
+	chsh -s /usr/bin/fish ubuntu && \
+	addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
 
 USER ubuntu
 WORKDIR /work
@@ -39,10 +38,9 @@ RUN cd /home/ubuntu/.dotfiles && stow -t /home/ubuntu -R *
 
 RUN fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
 
-RUN curl -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
-
 # The "sleep *" is a workaround for https://github.com/nvim-treesitter/nvim-treesitter/issues/2900
-RUN nvim --headless +"Lazy restore" +"TSUpdateSync" +"MasonUpdate" \
+RUN curl -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1 && \
+	nvim --headless +"Lazy restore" +"TSUpdateSync" +"MasonUpdate" \
 	+"MasonInstall pyright" +"MasonInstall clangd" \
 	+"sleep 20" +qall
 
