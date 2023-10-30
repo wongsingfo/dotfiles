@@ -41,6 +41,6 @@ RUN fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main
 # The "sleep *" is a workaround for https://github.com/nvim-treesitter/nvim-treesitter/issues/2900
 RUN curl -L https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1 && \
 	nvim --headless +"Lazy restore" +"TSUpdateSync" +"MasonUpdate" \
-	+"MasonInstall pyright" +"MasonInstall clangd" \
+	+"MasonInstall pyright" +"MasonInstall black" +"MasonInstall clangd" \
 	+"sleep 20" +qall
 

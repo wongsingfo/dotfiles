@@ -39,6 +39,9 @@ wk.register({
 	l = {
 		name = 'Lazygit',
 	},
+	c = {
+		name = "Copy to clipboard",
+	},
 }, { prefix = '<leader>' })
 
 -- LSP Saga
@@ -125,6 +128,9 @@ keymap("n", "<leader>gK", "<cmd>Lspsaga hover_doc ++keep<CR>")
 -- Call hierarchy
 -- keymap("n", "<Leader>ci", "<cmd>Lspsaga incoming_calls<CR>")
 -- keymap("n", "<Leader>co", "<cmd>Lspsaga outgoing_calls<CR>")
+
+-- Format
+keymap("n", "<leader>gf", "<cmd>GuardFmt<CR>")
 
 -- Floating terminal
 keymap({"n", "t"}, "<A-d>", "<cmd>Lspsaga term_toggle<CR>")
