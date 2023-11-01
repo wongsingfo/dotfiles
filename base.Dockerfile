@@ -19,13 +19,16 @@ RUN apt-get update && apt-get install -y \
 	python3-venv \
 	ranger \
 	ripgrep \
+	rsync \
 	stow \
 	sudo \
 	ssh \
+	sshpass \
 	tmux \
 	unzip \
 	uuid-runtime \
 	&& rm -rf /var/lib/apt/lists/* && \
+	npm install -g trzsz && \
 	chsh -s /usr/bin/fish ubuntu && \
 	addgroup wheel && adduser ubuntu wheel && echo '%wheel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/wheel
 

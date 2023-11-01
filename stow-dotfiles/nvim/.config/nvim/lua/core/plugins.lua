@@ -63,7 +63,11 @@ require('lazy').setup({
 			require"bufferline".setup{}
 		end
 	},
-	{ "nvim-tree/nvim-web-devicons" },
+
+	-- I don't want to use icons any more because icons has
+	-- compatibility issue with different terminal emulators :(
+	-- { "nvim-tree/nvim-web-devicons" },
+
 	-- {
 	-- 	"stevearc/dressing.nvim",
 	-- 	opts = {},
@@ -173,7 +177,14 @@ require('lazy').setup({
 				opts = {
 					outline = {
 						layout = 'float',
-					}
+					},
+					lightbulb = {
+						sign = false,
+						virtual_text = true,
+					},
+					ui = {
+						code_action = '💡'
+					},
 				},
 			},
 			{

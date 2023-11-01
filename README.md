@@ -21,7 +21,12 @@ Now, you're ready to begin using our Dockerized Dotfiles. Start by running this
 command:
 
 ```
-docker run -it -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh --name box wongsingfo/dotfiles
+docker run -it -v $(pwd):/work --name box wongsingfo/dotfiles
+
+# Or also bind the auth files
+docker run -it -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh \
+    -v $HOME/.cache/nvim/codeium/config.json:/home/ubuntu/.cache/nvim/codeium/config.json \
+    --name box wongsingfo/dotfiles
 ```
 
 To detach from the container, use the default key combination: Ctrl-P followed
