@@ -36,12 +36,25 @@ require('lazy').setup({
 	"tpope/vim-sleuth",
 	"ojroques/nvim-osc52",
 	"tpope/vim-vinegar",
-	-- 'f-person/git-blame.nvim',
+	{
+		'f-person/git-blame.nvim',
+		config = function()
+			require'gitblame'.setup({
+				enabled = false
+			})
+		end
+	},
 	{
 		'lewis6991/gitsigns.nvim',
 		opts = {},
 	},
-	"sindrets/diffview.nvim",
+	{
+		"sindrets/diffview.nvim",
+		opts = {
+			-- Requires nvim-web-devicons
+			use_icons = false,
+		}
+	},
 
 	-- UI
 	-- {

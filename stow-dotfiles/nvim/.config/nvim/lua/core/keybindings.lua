@@ -193,6 +193,9 @@ map('n', '<leader>lg', '<cmd>LazyGit<cr>', opt)
 -- Rnvimr (ranger)
 map('n', '<leader>ra', '<cmd>RnvimrToggle<cr>', opt)
 
+-- GitBlame
+map('n', '<leader>gb', '<cmd>GitBlameToggle<cr>', opt)
+
 wk.register({
 	["<c-n>"] = "NvimTreeToggle",
 	["<c-p>"] = "Telescope find_files",
