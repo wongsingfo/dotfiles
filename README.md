@@ -24,9 +24,16 @@ command:
 docker run -it -v $(pwd):/work --name box wongsingfo/dotfiles
 
 # Or also bind the auth files
-docker run -it -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh \
+docker run -it \
+    -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh \
     -v $HOME/.cache/nvim/codeium/config.json:/home/ubuntu/.cache/nvim/codeium/config.json \
     --name box wongsingfo/dotfiles
+
+# Allow gdb to disable the ASLR
+# https://stackoverflow.com/questions/35860527/warning-error-disabling-address-space-randomization-operation-not-permitted
+docker run -it \
+    --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
+    wongsingfo/dotfiles:ctf
 ```
 
 To detach from the container, use the default key combination: Ctrl-P followed
@@ -56,4 +63,14 @@ sudo su -c 'usermod -u 1004 ubuntu && groupmod -g 1004 ubuntu'
 rm -rf /tmp/fish.ubuntu
 ```
 
+### My Ctrl-P Key Is Not Working
 
+Ctrl-P is the default key binding for the `Previous` command in the shell.
+However, it conflicts with the Docker detach key (Ctrl-P + Ctrl-Q). To change
+the detach key, change the config file in the `~/.docker/config.json` file.
+
+```json
+{
+    "detachKeys": "ctrl-z,e"
+}
+```
