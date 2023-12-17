@@ -253,7 +253,7 @@ require('lazy').setup({
 			-- { "saadparwaiz1/cmp_luasnip" },
 			-- { "andersevenrud/cmp-tmux" },
 			-- { "f3fora/cmp-spell" },
-			-- { "hrsh7th/cmp-buffer" },
+			{ "hrsh7th/cmp-buffer" },
 			-- { "kdheepak/cmp-latex-symbols" },
 			-- { "ray-x/cmp-treesitter" },
 			-- { "hrsh7th/cmp-nvim-lua" },

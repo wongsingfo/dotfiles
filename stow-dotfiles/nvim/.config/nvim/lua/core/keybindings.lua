@@ -36,9 +36,9 @@ wk.register({
 	t = {
 		name = 'Textmode',
 	},
-	l = {
-		name = 'Lazygit',
-	},
+	-- l = {
+	-- 	name = 'Lazygit',
+	-- },
 	c = {
 		name = "Copy to clipboard",
 	},
@@ -188,7 +188,7 @@ vim.cmd[[
 map('n', '<leader>pp', '<cmd>set paste<cr>"*p<cmd>set nopaste<cr>', opt)
 -- Lazygit
 -- https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Keybindings_en.md
-map('n', '<leader>lg', '<cmd>LazyGit<cr>', opt)
+-- map('n', '<leader>lg', '<cmd>LazyGit<cr>', opt)
 
 -- Rnvimr (ranger)
 map('n', '<leader>ra', '<cmd>RnvimrToggle<cr>', opt)
