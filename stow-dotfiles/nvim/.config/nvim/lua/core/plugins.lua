@@ -103,6 +103,21 @@ require('lazy').setup({
 		opts = {},
 	},
 	{ "kevinhwang91/rnvimr" },
+	{
+		"lukas-reineke/indent-blankline.nvim",
+		config = function()
+			vim.opt.list = true
+			vim.opt.listchars = {
+				trail = '•',
+				tab = '▎ ',
+				extends = '»',
+				precedes = '«',
+				nbsp = '␣',
+			}
+			require("ibl").setup {
+			}
+		end
+	},
 
 	-- Completion
 	{
@@ -137,6 +152,18 @@ require('lazy').setup({
 					use_virtual_text = true,
 					lint_events = { "BufWrite", "CursorHold" },
 				},
+			}
+		end
+	},
+	{
+		"robitx/gp.nvim",
+		config = function()
+			local home = os.getenv("HOME")
+			local inDockerContainer = os.getenv("USER") == "ubuntu"
+			local proxy = inDockerContainer and "http://172.17.0.1:7890" or "http://127.0.0.1:7890"
+			require("gp").setup {
+				openai_api_key = { "cat", home.."/.config/OPENAI_API_KEY" },
+				curl_params = {"--proxy", proxy}
 			}
 		end
 	},

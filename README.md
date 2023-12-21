@@ -27,6 +27,7 @@ docker run -it -v $(pwd):/work --name box wongsingfo/dotfiles
 docker run -it \
     -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh \
     -v $HOME/.cache/nvim/codeium/config.json:/home/ubuntu/.cache/nvim/codeium/config.json \
+    -v $HOME/.config/OPENAI_API_KEY:/home/ubuntu/.config/OPENAI_API_KEY \
     --name box wongsingfo/dotfiles
 
 # Allow gdb to disable the ASLR
