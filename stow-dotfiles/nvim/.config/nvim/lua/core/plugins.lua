@@ -115,6 +115,9 @@ require('lazy').setup({
 				nbsp = '␣',
 			}
 			require("ibl").setup {
+				scope = {
+					show_end = false, -- Not good for python
+				}
 			}
 		end
 	},

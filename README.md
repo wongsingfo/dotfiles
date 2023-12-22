@@ -44,7 +44,7 @@ If you need to re-enter the container, execute the following:
 
 ```
 # We change the detach keys to avoid the confliction with the `Previous` command in the shell
-docker start -i --detach-keys='ctrl-z,e' box
+docker start -i --detach-keys='ctrl-x,e' box
 ```
 
 ## Troubleshooting
