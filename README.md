@@ -72,6 +72,6 @@ the detach key, change the config file in the `~/.docker/config.json` file.
 
 ```json
 {
-    "detachKeys": "ctrl-z,e"
+    "detachKeys": "ctrl-x,e"
 }
 ```
