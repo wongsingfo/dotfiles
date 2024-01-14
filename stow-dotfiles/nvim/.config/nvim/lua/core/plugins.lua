@@ -22,8 +22,9 @@ require('lazy').setup({
 		lazy = false,
 		priority = 1000,
 		config = function()
-			vim.cmd([[colorscheme gruvbox]])
-			vim.cmd([[let g:lightline = { 'colorscheme': 'gruvbox' }]])
+			-- https://github.com/morhetz/gruvbox/wiki/Configuration#ggruvbox_sign_column
+			vim.cmd([[let g:gruvbox_sign_column = 'bg0']])
+			vim.cmd.colorscheme('gruvbox')
 		end
 	},
 
@@ -36,25 +37,27 @@ require('lazy').setup({
 	"tpope/vim-sleuth",
 	"ojroques/nvim-osc52",
 	"tpope/vim-vinegar",
-	{
-		'f-person/git-blame.nvim',
-		config = function()
-			require'gitblame'.setup({
-				enabled = false
-			})
-		end
-	},
+	-- Version Control (git)
+	-- {
+	-- 	'f-person/git-blame.nvim',
+	-- 	config = function()
+	-- 		require'gitblame'.setup({
+	-- 			enabled = false
+	-- 		})
+	-- 	end
+	-- },
+	-- "airblade/vim-gitgutter",
 	{
 		'lewis6991/gitsigns.nvim',
-		opts = {},
+		opts = {}
 	},
-	{
-		"sindrets/diffview.nvim",
-		opts = {
-			-- Requires nvim-web-devicons
-			use_icons = false,
-		}
-	},
+	-- {
+	-- 	"sindrets/diffview.nvim",
+	-- 	opts = {
+	-- 		-- Requires nvim-web-devicons
+	-- 		use_icons = false,
+	-- 	}
+	-- },
 
 	-- UI
 	-- {
@@ -70,12 +73,13 @@ require('lazy').setup({
 			require"fidget".setup{}
 		end
 	},
-	{
-		'akinsho/bufferline.nvim',
-		config = function()
-			require"bufferline".setup{}
-		end
-	},
+	-- {
+	-- 	'akinsho/bufferline.nvim',
+	-- 	config = function()
+	-- 		require"bufferline".setup{}
+	-- 	end
+	-- },
+	"itchyny/lightline.vim",
 
 	-- I don't want to use icons any more because icons has
 	-- compatibility issue with different terminal emulators :(
@@ -131,8 +135,12 @@ require('lazy').setup({
 			"nvim-treesitter/nvim-treesitter",
 		}
 	},
+	"nvim-treesitter/playground",  -- For debugging nvim-treesitter
 	{
 		"nvim-treesitter/nvim-treesitter",
+		-- Lower the priority of treesitter to ensure the modification
+		-- to nvim_set_hl is the last (the default priority is 50)
+		priority = 30,
 		config = function ()
 			require'nvim-treesitter.configs'.setup {
 				ensure_installed = {
@@ -156,6 +164,16 @@ require('lazy').setup({
 					lint_events = { "BufWrite", "CursorHold" },
 				},
 			}
+
+			-- Fix bug: https://www.reddit.com/r/vim/comments/s8md17/how_to_fix_the_cursor_line_getting_cut_off_like/
+			-- API references:
+			-- - https://neovim.io/doc/user/api.html#nvim_set_hl()
+			-- - https://github.com/nvim-treesitter/nvim-treesitter?tab=readme-ov-file#available-modules
+			-- print(vim.inspect(x))
+			local val = vim.api.nvim_get_hl(0, {name = "Normal"})
+			val.bg = nil
+			val.ctermbg = nil
+			vim.api.nvim_set_hl(0, "@operator", val)
 		end
 	},
 	{
@@ -230,32 +248,34 @@ require('lazy').setup({
 					},
 				},
 			},
-			{
-				"nvimdev/guard.nvim",
-				-- Builtin configuration, optional
-				dependencies = {
-					"nvimdev/guard-collection",
-				},
-				config = function()
-					local ft = require('guard.filetype')
-					-- -- Assuming you have guard-collection
-					-- ft('lang'):fmt('format-tool-1')
-					-- 	:append('format-tool-2')
-					-- 	:env(env_table)
-					-- 	:lint('lint-tool-1')
-					-- 	:extra(extra_args)
-					ft('python'):fmt('black')
-
-					-- Call setup() LAST!
-					require('guard').setup({
-						-- the only options for the setup function
-						fmt_on_save = false,
-						-- Use lsp if no formatter was defined for this filetype
-						lsp_as_default_formatter = true,
-					})
-				end,
-			},
 		},
+	},
+	{
+		"nvimdev/guard.nvim",
+		-- Builtin configuration, optional
+		dependencies = {
+			"nvimdev/guard-collection",
+		},
+		-- priority = 1000,
+		-- cmd = "GuardFmt",
+		config = function()
+			local ft = require('guard.filetype')
+			-- -- Assuming you have guard-collection
+			-- ft('lang'):fmt('format-tool-1')
+			-- 	:append('format-tool-2')
+			-- 	:env(env_table)
+			-- 	:lint('lint-tool-1')
+			-- 	:extra(extra_args)
+			ft('python'):fmt('black')
+
+			-- Call setup() LAST!
+			require('guard').setup({
+				-- the only options for the setup function
+				fmt_on_save = false,
+				-- Use lsp if no formatter was defined for this filetype
+				lsp_as_default_formatter = true,
+			})
+		end,
 	},
 	{
 		"hrsh7th/nvim-cmp",
