@@ -154,7 +154,7 @@ keymap('n', '<leader>tc', '<cmd>tabclose<cr>', opt)
 keymap('n', '<leader>ra', '<cmd>RnvimrToggle<cr>', keymapOptions("Run Ranger"))
 
 -- GitBlame
-keymap('n', '<leader>gb', '<cmd>GitBlameToggle<cr>', keymapOptions("Toggle GitBlame"))
+-- keymap('n', '<leader>gb', '<cmd>GitBlameToggle<cr>', keymapOptions("Toggle GitBlame"))
 
 -- Copy to clipboard
 local osc52 = require('osc52')

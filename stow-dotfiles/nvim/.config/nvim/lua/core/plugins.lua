@@ -292,6 +292,7 @@ require('lazy').setup({
 			},
 			{
 				"jcdickinson/codeium.nvim",
+				-- enabled = false,
 				dependencies = {
 					"nvim-lua/plenary.nvim",
 				},
