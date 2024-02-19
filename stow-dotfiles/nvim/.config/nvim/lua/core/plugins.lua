@@ -87,6 +87,7 @@ require('lazy').setup({
 
 	-- {
 	-- 	"stevearc/dressing.nvim",
+		"neovim/nvim-lspconfig",
 	-- 	opts = {},
 	-- 	-- event = "VeryLazy",
 	-- },
@@ -135,7 +136,10 @@ require('lazy').setup({
 			"nvim-treesitter/nvim-treesitter",
 		}
 	},
-	"nvim-treesitter/playground",  -- For debugging nvim-treesitter
+	{
+		"nvim-treesitter/playground",  -- For debugging nvim-treesitter
+		enabled = false,
+	},
 	{
 		"nvim-treesitter/nvim-treesitter",
 		-- Lower the priority of treesitter to ensure the modification
@@ -255,6 +259,7 @@ require('lazy').setup({
 		-- Builtin configuration, optional
 		dependencies = {
 			"nvimdev/guard-collection",
+			"neovim/nvim-lspconfig",
 		},
 		-- priority = 1000,
 		-- cmd = "GuardFmt",
@@ -278,6 +283,17 @@ require('lazy').setup({
 		end,
 	},
 	{
+		"jcdickinson/codeium.nvim",
+		lazy = true,
+		cmd = "Codeium",
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+		},
+		config = function()
+			require("codeium").setup {}
+		end
+	},
+	{
 		"hrsh7th/nvim-cmp",
 		dependencies = {
 			{ "hrsh7th/cmp-nvim-lsp" },
@@ -288,16 +304,6 @@ require('lazy').setup({
 				after = { "zbirenbaum/copilot.lua" },
 				config = function ()
 					require("copilot_cmp").setup()
-				end
-			},
-			{
-				"jcdickinson/codeium.nvim",
-				-- enabled = false,
-				dependencies = {
-					"nvim-lua/plenary.nvim",
-				},
-				config = function()
-					require("codeium").setup {}
 				end
 			},
 			-- { "lukas-reineke/cmp-under-comparator" },
