@@ -107,6 +107,21 @@ require('lazy').setup({
 	{
 		"nvim-telescope/telescope.nvim",
 		cmd = "Telescope",
+		-- Ref: https://yeripratama.com/blog/customizing-nvim-telescope/
+		opts = {
+			defaults = {
+				layout_strategy = "horizontal",
+				layout_config = {
+					horizontal = {
+						prompt_position = "top",
+						width = { padding = 0 },
+						height = { padding = 0 },
+						preview_width = 0.5,
+					},
+				},
+				sorting_strategy = "ascending",
+			},
+		},
 		dependencies = {
 			"nvim-telescope/telescope-fzf-native.nvim",
 			"nvim-lua/plenary.nvim",
