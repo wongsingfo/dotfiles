@@ -1,19 +1,32 @@
 local vim = vim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+local use_ghproxy = false
+local lazy_url = "https://github.com/folke/lazy.nvim.git"
+local lazy_url_format = "https://github.com/%s.git"
+
+if use_ghproxy then
+	local ghproxy_url = "https://ghproxy.org/"
+	lazy_url = ghproxy_url.. lazy_url
+	lazy_url_format = ghproxy_url .. lazy_url_format
+end
+
 if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
+	vim.fn.system({
+		"git",
+		"clone",
+		"--filter=blob:none",
+		lazy_url,
+		"--branch=stable", -- latest stable release
+		lazypath,
+	})
 end
 vim.opt.rtp:prepend(lazypath)
 
 -- https://github.com/folke/lazy.nvim#-plugin-spec
 require('lazy').setup({
+	git = {
+		url_format = lazy_url_format,
+	},
 	-- The colorscheme should be available when starting
 	{
 		"morhetz/gruvbox",
