@@ -72,7 +72,7 @@ keymap({"n", "v"}, "<leader>gx", "<cmd>Lspsaga code_action<CR>")
 keymap("n", "<leader>gr", "<cmd>Lspsaga rename ++project<CR>")
 keymap("n", "gp", "<cmd>Lspsaga peek_definition<CR>")
 keymap("n", "gd", "<cmd>Lspsaga goto_definition<CR>")
-keymap("n", "gt", "<cmd>Lspsaga goto_type_definition<CR>")
+keymap("n", "<leader>gt", "<cmd>Lspsaga goto_type_definition<CR>")
 -- keymap("n", "gt", "<cmd>Lspsaga peek_type_definition<CR>")
 -- keymap("n", "gt", "<cmd>Lspsaga goto_type_definition<CR>")
 -- keymap("n", "<leader>gl", "<cmd>Lspsaga show_line_diagnostics<CR>")
@@ -95,7 +95,7 @@ keymap("n", "<leader>gK", "<cmd>Lspsaga hover_doc ++keep<CR>")
 keymap({"n", "t"}, "<A-d>", "<cmd>Lspsaga term_toggle<CR>")
 
 -- Format
-keymap("n", "<leader>gf", "<cmd>GuardFmt<CR>")
+keymap({"n", "v"}, "<leader>gf", "<cmd>GuardFmt<CR>")
 keymap("n", "<leader>gs", "<cmd>ClangdSwitchSourceHeader<CR>")
 
 -- Telescope
