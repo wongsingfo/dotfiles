@@ -47,9 +47,9 @@ require('lazy').setup({
 
 	-- Utility
 	"folke/which-key.nvim",
-	"tpope/vim-sleuth",
+	"tpope/vim-sleuth", -- auto set buffer options (etc. indent)
 	"ojroques/nvim-osc52",
-	"tpope/vim-vinegar",
+	"tpope/vim-vinegar",  -- netrw
 	-- Version Control (git)
 	-- {
 	-- 	'f-person/git-blame.nvim',
@@ -273,6 +273,7 @@ require('lazy').setup({
 						layout = 'float',
 					},
 					lightbulb = {
+						enable = false,
 						sign = false,
 						virtual_text = true,
 					},
