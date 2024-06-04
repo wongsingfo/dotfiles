@@ -139,10 +139,11 @@ require('lazy').setup({
 	{
 		"lukas-reineke/indent-blankline.nvim",
 		config = function()
+			-- https://github.com/lukas-reineke/indent-blankline.nvim/issues/819
 			vim.opt.list = true
 			vim.opt.listchars = {
 				trail = '•',
-				tab = '▎ ',
+				tab = '| ',
 				extends = '»',
 				precedes = '«',
 				nbsp = '␣',
