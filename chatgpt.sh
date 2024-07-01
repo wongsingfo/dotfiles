@@ -9,21 +9,19 @@ API_HOST=api.gptsapi.net
 API_KEY=$(cat $HOME/.config/WILDCARD_KEY)
 TMP_FILE=/tmp/chatgpt-input.txt
 
-PROMPT_SYSTEM="You are ChatGPT, a large language model trained by OpenAI.
-Answer as concisely as possible."
+PROMPT_SYSTEM="You are a large language model. Answer as concisely as possible."
 PROMPT_COMMAND_GENERATION="You are a Command Line Interface expert and your
 task is to provide functioning shell commands. Return a CLI command and nothing
 else - do not send it in a code block, quotes, or anything else, just the pure
 text CONTAINING ONLY THE COMMAND. If possible, return a one-line bash
 command or chain many commands together. Return ONLY the command ready
 to run in the terminal. The command should do the following:"
-PROMPT_CHAT_INIT="You are ChatGPT, a Large Language Model trained by OpenAI.
-You will be answering questions from users. You answer as concisely as possible
-for each response (e.g. don’t be verbose). If you are generating a list, do not
-have too many items. Keep the number of items short. Before each user
-prompt you will be given the chat history in Q&A form. Output your
-answer directly, with no labels in front. Do not start your answers
-with A or Anwser."
+PROMPT_CHAT_INIT="You are a Large Language Model. You will be answering
+questions from users. You answer as concisely as possible for each response
+(e.g. don’t be verbose). If you are generating a list, do not have too many
+items. Keep the number of items short. Before each user prompt you will be
+given the chat history in Q&A form. Output your answer directly, with no labels
+in front. Do not start your answers with A or Anwser."
 MODEL="gpt-3.5-turbo"
 
 function print_help() {
@@ -39,6 +37,7 @@ Options:
 	--model <model>	  Default: gpt-3.5-turbo
 	--cli             Generate a bash command
 	--attach <file>   Add an attachment
+	--verbose
 EOF
     exit 1
 }
@@ -55,6 +54,7 @@ fi
 
 attachment=""
 cli_mode=""
+verbose_mode=""
 
 while [ "$1" != "" ]; do
 	case $1 in
@@ -75,6 +75,10 @@ while [ "$1" != "" ]; do
 		--list-model)
 			list_models
 			exit
+			;;
+		--verbose)
+			set -x
+			verbose_mode=1
 			;;
 		* )
 			prompt=$1
@@ -116,7 +120,7 @@ function make_input_once() {
 },
 {
 	"role": "user",
-	"content": "$content"
+	"content": $(jq --raw-input --slurp <<<"$content")
 }
 ]
 }
@@ -133,7 +137,7 @@ function make_input_with_attachment() {
 "messages": [
 {
 	"role": "system",
-	"content": "$content"
+	"content": $(jq --raw-input --slurp <<<"$content")
 },
 {
 	"role": "user",
@@ -176,5 +180,7 @@ if [ -z "$attachment" ]; then
 else
 	make_input_with_attachment "$prompt" "$attachment"
 fi
-# cat $TMP_FILE
+if [ -n "$verbose_mode" ]; then
+	cat $TMP_FILE
+fi
 make_request
