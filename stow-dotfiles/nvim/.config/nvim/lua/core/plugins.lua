@@ -6,7 +6,7 @@ local lazy_url_format = "https://github.com/%s.git"
 
 if use_ghproxy then
 	local ghproxy_url = "https://ghproxy.org/"
-	lazy_url = ghproxy_url.. lazy_url
+	lazy_url = ghproxy_url .. lazy_url
 	lazy_url_format = ghproxy_url .. lazy_url_format
 end
 
@@ -44,12 +44,125 @@ require('lazy').setup({
 	-- More keybinding
 	"tomtom/tcomment_vim",
 	"tpope/vim-surround",
+	{
+		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		"nvim-treesitter/nvim-treesitter-textobjects",
+		config = function()
+			require 'nvim-treesitter.configs'.setup {
+				textobjects = {
+					-- lsp_interop = {
+					-- 	enable = true,
+					-- 	-- border = 'none',
+					-- 	floating_preview_opts = {},
+					-- 	peek_definition_code = {
+					-- 		["<leader>gp"] = "@function.outer",
+					-- 	},
+					-- },
+					swap = {
+						enable = true,
+						swap_next = {
+							["<leader>gs"] = "@parameter.inner",
+						},
+						swap_previous = {
+							["<leader>gS"] = "@parameter.inner", },
+					},
+					select = {
+						enable = true,
+
+						-- Automatically jump forward to textobj, similar to targets.vim
+						lookahead = true,
+
+						keymaps = {
+							-- You can use the capture groups defined in textobjects.scm
+							["af"] = "@function.outer",
+							["if"] = "@function.inner",
+							["ab"] = "@block.outer",
+							["ib"] = "@block.inner",
+							["a,"] = "@parameter.outer",
+							["i,"] = "@parameter.inner",
+							-- ["ac"] = "@class.outer",
+							-- You can optionally set descriptions to the mappings (used in the desc parameter of
+							-- nvim_buf_set_keymap) which plugins like which-key display
+							-- ["ic"] = { query = "@class.inner", desc = "Select inner part of a class region" },
+							-- You can also use captures from other query groups like `locals.scm`
+							-- ["as"] = { query = "@scope", query_group = "locals", desc = "Select language scope" },
+						},
+						-- You can choose the select mode (default is charwise 'v')
+						--
+						-- Can also be a function which gets passed a table with the keys
+						-- * query_string: eg '@function.inner'
+						-- * method: eg 'v' or 'o'
+						-- and should return the mode ('v', 'V', or '<c-v>') or a table
+						-- mapping query_strings to modes.
+						-- selection_modes = {
+						-- 	['@parameter.outer'] = 'v', -- charwise
+						-- 	['@function.outer'] = 'V', -- linewise
+						-- 	['@class.outer'] = '<c-v>', -- blockwise
+						-- },
+
+						-- If you set this to `true` (default is `false`) then any textobject is
+						-- extended to include preceding or succeeding whitespace. Succeeding
+						-- whitespace has priority in order to act similarly to eg the built-in
+						-- `ap`.
+						--
+						-- Can also be a function which gets passed a table with the keys
+						-- * query_string: eg '@function.inner'
+						-- * selection_mode: eg 'v'
+						-- and should return true or false
+						include_surrounding_whitespace = true,
+					},
+					move = {
+						enable = true,
+						set_jumps = true, -- whether to set jumps in the jumplist
+						goto_next_start = {
+							["]f"] = "@function.outer",
+							-- ["]]"] = { query = "@class.outer", desc = "Next class start" },
+							-- --
+							-- -- You can use regex matching (i.e. lua pattern) and/or pass a list in a "query" key to group multiple queires.
+							-- ["]o"] = "@loop.*",
+							-- -- ["]o"] = { query = { "@loop.inner", "@loop.outer" } }
+							-- --
+							-- -- You can pass a query group to use query from `queries/<lang>/<query_group>.scm file in your runtime path.
+							-- -- Below example nvim-treesitter's `locals.scm` and `folds.scm`. They also provide highlights.scm and indent.scm.
+							-- ["]s"] = { query = "@scope", query_group = "locals", desc = "Next scope" },
+							-- ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
+						},
+						goto_next_end = {
+							["]F"] = "@function.outer",
+							-- ["]["] = "@class.outer",
+						},
+						goto_previous_start = {
+							["[f"] = "@function.outer",
+							-- ["[["] = "@class.outer",
+						},
+						goto_previous_end = {
+							["[F"] = "@function.outer",
+							-- ["[]"] = "@class.outer",
+						},
+						-- Below will go to either the start or the end, whichever is closer.
+						-- Use if you want more granular movements
+						-- Make it even more gradual by adding multiple queries and regex.
+						-- goto_next = {
+						-- 	["]d"] = "@conditional.outer",
+						-- },
+						-- goto_previous = {
+						-- 	["[d"] = "@conditional.outer",
+						-- }
+					},
+				},
+			}
+		end
+	},
 
 	-- Utility
 	"folke/which-key.nvim",
 	"tpope/vim-sleuth", -- auto set buffer options (etc. indent)
 	"ojroques/nvim-osc52",
-	"tpope/vim-vinegar",  -- netrw
+	{
+		'nmac427/guess-indent.nvim',
+		config = function() require('guess-indent').setup {} end,
+	},
+	-- "tpope/vim-vinegar", -- netrw
 	-- Version Control (git)
 	-- {
 	-- 	'f-person/git-blame.nvim',
@@ -83,7 +196,7 @@ require('lazy').setup({
 		tag = "legacy",
 		event = "LspAttach",
 		config = function()
-			require"fidget".setup{}
+			require "fidget".setup {}
 		end
 	},
 	-- {
@@ -92,7 +205,7 @@ require('lazy').setup({
 	-- 		require"bufferline".setup{}
 	-- 	end
 	-- },
-	"itchyny/lightline.vim",
+	"itchyny/lightline.vim", -- statusline
 
 	-- I don't want to use icons any more because icons has
 	-- compatibility issue with different terminal emulators :(
@@ -100,8 +213,8 @@ require('lazy').setup({
 
 	-- {
 	-- 	"stevearc/dressing.nvim",
-		"neovim/nvim-lspconfig",
-	-- 	opts = {},
+	-- 	"neovim/nvim-lspconfig",
+	--  	opts = {},
 	-- 	-- event = "VeryLazy",
 	-- },
 	{
@@ -113,6 +226,7 @@ require('lazy').setup({
 				layout_strategy = "horizontal",
 				layout_config = {
 					horizontal = {
+						-- Fullscreen
 						prompt_position = "top",
 						width = { padding = 0 },
 						height = { padding = 0 },
@@ -136,25 +250,26 @@ require('lazy').setup({
 		opts = {},
 	},
 	{ "kevinhwang91/rnvimr" },
-	{
-		"lukas-reineke/indent-blankline.nvim",
-		config = function()
-			-- https://github.com/lukas-reineke/indent-blankline.nvim/issues/819
-			vim.opt.list = true
-			vim.opt.listchars = {
-				trail = '•',
-				tab = '| ',
-				extends = '»',
-				precedes = '«',
-				nbsp = '␣',
-			}
-			require("ibl").setup {
-				scope = {
-					show_end = false, -- Not good for python
-				}
-			}
-		end
-	},
+	-- {
+	-- 	"lukas-reineke/indent-blankline.nvim",
+	-- 	config = function()
+	-- 		-- https://github.com/lukas-reineke/indent-blankline.nvim/issues/819
+	-- 		-- vim.opt.list = true
+	-- 		-- vim.opt.listchars = {
+	-- 		-- 	trail = '•',
+	-- 		-- 	lead = '.',
+	-- 		-- 	tab = '|.',
+	-- 		-- 	extends = '»',
+	-- 		-- 	precedes = '«',
+	-- 		-- 	nbsp = '␣',
+	-- 		-- }
+	-- 		require("ibl").setup {
+	-- 			scope = {
+	-- 				-- show_end = false, -- Not good for python
+	-- 			}
+	-- 		}
+	-- 	end
+	-- },
 
 	-- Completion
 	{
@@ -166,7 +281,7 @@ require('lazy').setup({
 		}
 	},
 	{
-		"nvim-treesitter/playground",  -- For debugging nvim-treesitter
+		"nvim-treesitter/playground", -- For debugging nvim-treesitter
 		enabled = false,
 	},
 	{
@@ -174,8 +289,8 @@ require('lazy').setup({
 		-- Lower the priority of treesitter to ensure the modification
 		-- to nvim_set_hl is the last (the default priority is 50)
 		priority = 30,
-		config = function ()
-			require'nvim-treesitter.configs'.setup {
+		config = function()
+			require 'nvim-treesitter.configs'.setup {
 				ensure_installed = {
 					"c",
 					"cpp",
@@ -203,43 +318,32 @@ require('lazy').setup({
 			-- - https://neovim.io/doc/user/api.html#nvim_set_hl()
 			-- - https://github.com/nvim-treesitter/nvim-treesitter?tab=readme-ov-file#available-modules
 			-- print(vim.inspect(x))
-			local val = vim.api.nvim_get_hl(0, {name = "Normal"})
+			local val = vim.api.nvim_get_hl(0, { name = "Normal" })
 			val.bg = nil
 			val.ctermbg = nil
 			vim.api.nvim_set_hl(0, "@operator", val)
 		end
 	},
-	{
-		"robitx/gp.nvim",
-		config = function()
-			local home = os.getenv("HOME")
-			local inDockerContainer = os.getenv("USER") == "ubuntu"
-			local proxy = inDockerContainer and "http://172.17.0.1:7890" or "http://127.0.0.1:7890"
-			require("gp").setup {
-				openai_api_key = { "cat", home.."/.config/OPENAI_API_KEY" },
-				curl_params = {"--proxy", proxy}
-			}
-		end
-	},
-	{
-		"zbirenbaum/copilot.lua",
-		enabled = false,
-		opts = {
-			-- disable copilot.lua's suggestion and panel modules,
-			-- as they can interfere with completions properly
-			-- appearing in copilot-cmp
-			suggestion = { enabled = false },
-			panel = { enabled = false },
-		},
-	},
+	-- {
+	-- 	"zbirenbaum/copilot.lua",
+	-- 	enabled = false,
+	-- 	opts = {
+	-- 		-- disable copilot.lua's suggestion and panel modules,
+	-- 		-- as they can interfere with completions properly
+	-- 		-- appearing in copilot-cmp
+	-- 		suggestion = { enabled = false },
+	-- 		panel = { enabled = false },
+	-- 	},
+	-- },
 	{
 		"neovim/nvim-lspconfig",
 		config = function()
 			local lspconfig = require('lspconfig')
 
 			-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
-			lspconfig.pyright.setup {}
-			lspconfig.tsserver.setup {}
+			-- lspconfig.pyright.setup {}
+			-- lspconfig.tsserver.setup {}
+			lspconfig.pylsp.setup {}
 
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			capabilities.offsetEncoding = 'utf-8'
@@ -253,6 +357,41 @@ require('lazy').setup({
 					['rust-analyzer'] = {},
 				},
 			}
+
+			lspconfig.lua_ls.setup {
+				-- If you primarily use lua-language-server for Neovim, and want to provide completions, analysis,
+				-- and location handling for plugins on runtime path, you can use the following settings.
+				on_init = function(client)
+					local path = client.workspace_folders[1].name
+					if vim.loop.fs_stat(path .. '/.luarc.json') or vim.loop.fs_stat(path .. '/.luarc.jsonc') then
+						return
+					end
+
+					client.config.settings.Lua = vim.tbl_deep_extend('force',
+						client.config.settings.Lua, {
+							runtime = {
+								-- Tell the language server which version of Lua you're using
+								-- (most likely LuaJIT in the case of Neovim)
+								version = 'LuaJIT'
+							},
+							-- Make the server aware of Neovim runtime files
+							workspace = {
+								checkThirdParty = false,
+								library = {
+									vim.env.VIMRUNTIME
+									-- Depending on the usage, you might want to add additional paths here.
+									-- "${3rd}/luv/library"
+									-- "${3rd}/busted/library",
+								}
+								-- or pull in all of 'runtimepath'. NOTE: this is a lot slower
+								-- library = vim.api.nvim_get_runtime_file("", true)
+							}
+						})
+				end,
+				settings = {
+					Lua = {}
+				}
+			}
 		end,
 		dependencies = {
 			{
@@ -261,60 +400,66 @@ require('lazy').setup({
 			},
 			{
 				"williamboman/mason.nvim",
+				cmd = "Mason",
 				build = ":MasonUpdate",
 				opts = {},
 			},
 			-- { "williamboman/mason-lspconfig.nvim" },
-			{
-				"nvimdev/lspsaga.nvim",
-				event = "LspAttach",
-				opts = {
-					outline = {
-						layout = 'float',
-					},
-					lightbulb = {
-						enable = false,
-						sign = false,
-						virtual_text = true,
-					},
-					ui = {
-						code_action = '💡'
-					},
-				},
-			},
+			-- {
+			-- 	"nvimdev/lspsaga.nvim",
+			-- 	event = "LspAttach",
+			-- 	opts = {
+			-- 		-- https://github.com/nvimdev/lspsaga.nvim/blob/main/lua/lspsaga/init.lua
+			-- 		outline = {
+			-- 			layout = 'float',
+			-- 		},
+			-- 		lightbulb = {
+			-- 			enable = false,
+			-- 			sign = false,
+			-- 			virtual_text = true,
+			-- 		},
+			-- 		symbol_in_winbar = {
+			-- 			enable = false,
+			-- 		},
+			-- 		ui = {
+			-- 			code_action = '💡'
+			-- 		},
+			-- 	},
+			-- },
 		},
 	},
+	-- {
+	-- 	"nvimdev/guard.nvim",
+	-- 	enabled = false,
+	-- 	-- Builtin configuration, optional
+	-- 	dependencies = {
+	-- 		"nvimdev/guard-collection",
+	-- 		"neovim/nvim-lspconfig",
+	-- 	},
+	-- 	config = function()
+	-- 		local ft = require('guard.filetype')
+	-- 		-- -- Assuming you have guard-collection
+	-- 		-- ft('lang'):fmt('format-tool-1')
+	-- 		-- 	:append('format-tool-2')
+	-- 		-- 	:env(env_table)
+	-- 		-- 	:lint('lint-tool-1')
+	-- 		-- 	:extra(extra_args)
+	-- 		ft('python'):fmt('black')
+	--
+	-- 		-- Call setup() LAST!
+	-- 		require('guard').setup({
+	-- 			fmt_on_save = false,
+	-- 			-- Use lsp if no formatter was defined for this filetype
+	-- 			lsp_as_default_formatter = true,
+	-- 		})
+	-- 	end,
+	-- },
 	{
-		"nvimdev/guard.nvim",
-		-- Builtin configuration, optional
-		dependencies = {
-			"nvimdev/guard-collection",
-			"neovim/nvim-lspconfig",
-		},
-		-- priority = 1000,
-		-- cmd = "GuardFmt",
-		config = function()
-			local ft = require('guard.filetype')
-			-- -- Assuming you have guard-collection
-			-- ft('lang'):fmt('format-tool-1')
-			-- 	:append('format-tool-2')
-			-- 	:env(env_table)
-			-- 	:lint('lint-tool-1')
-			-- 	:extra(extra_args)
-			ft('python'):fmt('black')
-
-			-- Call setup() LAST!
-			require('guard').setup({
-				-- the only options for the setup function
-				fmt_on_save = false,
-				-- Use lsp if no formatter was defined for this filetype
-				lsp_as_default_formatter = true,
-			})
-		end,
+		-- make Neovim's quickfix window better
+		'kevinhwang91/nvim-bqf',
 	},
 	{
 		"jcdickinson/codeium.nvim",
-		lazy = true,
 		cmd = "Codeium",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
@@ -328,14 +473,14 @@ require('lazy').setup({
 		dependencies = {
 			{ "hrsh7th/cmp-nvim-lsp" },
 			{ "hrsh7th/cmp-path" },
-			{
-				"zbirenbaum/copilot-cmp",
-				enabled = false,
-				after = { "zbirenbaum/copilot.lua" },
-				config = function ()
-					require("copilot_cmp").setup()
-				end
-			},
+			-- {
+			-- 	"zbirenbaum/copilot-cmp",
+			-- 	enabled = false,
+			-- 	after = { "zbirenbaum/copilot.lua" },
+			-- 	config = function ()
+			-- 		require("copilot_cmp").setup()
+			-- 	end
+			-- },
 			-- { "lukas-reineke/cmp-under-comparator" },
 			-- { "saadparwaiz1/cmp_luasnip" },
 			-- { "andersevenrud/cmp-tmux" },
@@ -344,13 +489,11 @@ require('lazy').setup({
 			-- { "kdheepak/cmp-latex-symbols" },
 			-- { "ray-x/cmp-treesitter" },
 			-- { "hrsh7th/cmp-nvim-lua" },
-			{
-				"onsails/lspkind.nvim",
-			}
+			{ "onsails/lspkind.nvim", }
 		},
-		config = function ()
-			local cmp = require'cmp'
-			local lspkind = require'lspkind'
+		config = function()
+			local cmp = require 'cmp'
+			local lspkind = require 'lspkind'
 			cmp.setup({
 				window = {
 					-- completion = cmp.config.window.bordered(),
