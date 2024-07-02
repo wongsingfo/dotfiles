@@ -34,9 +34,10 @@ Commands:
 	--list-model
 
 Options:
-	--model <model>	  Default: gpt-3.5-turbo
+	--model <model>   Default: gpt-3.5-turbo
 	--cli             Generate a bash command
 	--attach <file>   Add an attachment
+	--stdin           Equivalent to --attach /dev/stdin
 	--verbose
 EOF
     exit 1
@@ -58,11 +59,14 @@ verbose_mode=""
 
 while [ "$1" != "" ]; do
 	case $1 in
-		--attach )
+		--attach)
 			shift
 			attachment=$1
 			;;
-		--cli )
+		--stdin)
+			attachment=/dev/stdin
+			;;
+		--cli)
 			cli_mode=1
 			;;
 		--model)
@@ -80,7 +84,11 @@ while [ "$1" != "" ]; do
 			set -x
 			verbose_mode=1
 			;;
-		* )
+		-*)
+			echo "unknwon options $1"
+			exit 1
+			;;
+		*)
 			prompt=$1
 			;;
 	esac

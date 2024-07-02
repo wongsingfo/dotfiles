@@ -1,3 +1,28 @@
+# Manage Packages with Micromamba
+
+In situations where root privileges are not available to install required
+packages, Micromamba can be a useful tool. Here's a simple guide on how to use
+Micromamba to manage packages:
+
+Install with:
+```
+"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+```
+
+Export the existing environment to a YAML file named `oldenv.yaml` using the
+following command:
+
+```
+micromamba env export --name oldenv > oldenv.yaml
+```
+
+Create a new environment named `newenv` using the exported YAML file
+`oldenv.yaml`:
+
+```
+micromamba env create --name newenv --file oldenv.yaml
+```
+
 # Dockerize the Dotfiles
 
 Have you ever been in a situation where you need to reconfigure your
