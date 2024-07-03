@@ -74,8 +74,8 @@ require('lazy').setup({
 
 						keymaps = {
 							-- You can use the capture groups defined in textobjects.scm
-							["af"] = "@function.outer",
-							["if"] = "@function.inner",
+							["am"] = "@function.outer",
+							["im"] = "@function.inner",
 							["ab"] = "@block.outer",
 							["ib"] = "@block.inner",
 							["a,"] = "@parameter.outer",
@@ -115,7 +115,7 @@ require('lazy').setup({
 						enable = true,
 						set_jumps = true, -- whether to set jumps in the jumplist
 						goto_next_start = {
-							["]f"] = "@function.outer",
+							["]m"] = "@function.outer",
 							-- ["]]"] = { query = "@class.outer", desc = "Next class start" },
 							-- --
 							-- -- You can use regex matching (i.e. lua pattern) and/or pass a list in a "query" key to group multiple queires.
@@ -128,15 +128,15 @@ require('lazy').setup({
 							-- ["]z"] = { query = "@fold", query_group = "folds", desc = "Next fold" },
 						},
 						goto_next_end = {
-							["]F"] = "@function.outer",
+							["]M"] = "@function.outer",
 							-- ["]["] = "@class.outer",
 						},
 						goto_previous_start = {
-							["[f"] = "@function.outer",
+							["[m"] = "@function.outer",
 							-- ["[["] = "@class.outer",
 						},
 						goto_previous_end = {
-							["[F"] = "@function.outer",
+							["[M"] = "@function.outer",
 							-- ["[]"] = "@class.outer",
 						},
 						-- Below will go to either the start or the end, whichever is closer.
@@ -151,6 +151,17 @@ require('lazy').setup({
 					},
 				},
 			}
+
+			local ts_repeat_move = require "nvim-treesitter.textobjects.repeatable_move"
+			-- Repeat movement with ; and ,
+			-- ensure ; goes forward and , goes backward regardless of the last direction
+			vim.keymap.set({ "n", "x", "o" }, ";", ts_repeat_move.repeat_last_move_next)
+			vim.keymap.set({ "n", "x", "o" }, ",", ts_repeat_move.repeat_last_move_previous)
+			-- Optionally, make builtin f, F, t, T also repeatable with ; and ,
+			vim.keymap.set({ "n", "x", "o" }, "f", ts_repeat_move.builtin_f_expr, { expr = true })
+			vim.keymap.set({ "n", "x", "o" }, "F", ts_repeat_move.builtin_F_expr, { expr = true })
+			vim.keymap.set({ "n", "x", "o" }, "t", ts_repeat_move.builtin_t_expr, { expr = true })
+			vim.keymap.set({ "n", "x", "o" }, "T", ts_repeat_move.builtin_T_expr, { expr = true })
 		end
 	},
 
@@ -230,7 +241,7 @@ require('lazy').setup({
 						prompt_position = "top",
 						width = { padding = 0 },
 						height = { padding = 0 },
-						preview_width = 0.5,
+						preview_width = 0.618,
 					},
 				},
 				sorting_strategy = "ascending",
@@ -337,6 +348,7 @@ require('lazy').setup({
 	-- },
 	{
 		"neovim/nvim-lspconfig",
+		cmd = "LspStart",
 		config = function()
 			local lspconfig = require('lspconfig')
 
@@ -392,6 +404,8 @@ require('lazy').setup({
 					Lua = {}
 				}
 			}
+
+			lspconfig.bashls.setup {}
 		end,
 		dependencies = {
 			{

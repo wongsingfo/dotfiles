@@ -36,30 +36,30 @@ end
 -- 	["<c-v>"] = "Paste reg in terminal mode",
 -- }, { prefix = '?' })
 
-wk.register({
-	p = {
-		name = 'Telescope Diffview PasteCode',
-		d = ':DiffviewOpen',
-		D = ':DiffviewFileHistory paths',
-		c = ':DiffviewClose',
-	},
-	n = {
-		name = 'NvimTree BufferLine',
-	},
-	w = {
-		name = 'WindowResizer',
-	},
-	t = {
-		name = 'Textmode',
-	},
-	-- l = {
-	-- 	name = 'Lazygit',
-	-- },
-	c = {
-		name = "Copy to clipboard",
-	},
-}, { prefix = '<leader>' })
-
+-- wk.register({
+-- 	p = {
+-- 		name = 'Telescope Diffview PasteCode',
+-- 		d = ':DiffviewOpen',
+-- 		D = ':DiffviewFileHistory paths',
+-- 		c = ':DiffviewClose',
+-- 	},
+-- 	n = {
+-- 		name = 'NvimTree BufferLine',
+-- 	},
+-- 	w = {
+-- 		name = 'WindowResizer',
+-- 	},
+-- 	t = {
+-- 		name = 'Textmode',
+-- 	},
+-- 	-- l = {
+-- 	-- 	name = 'Lazygit',
+-- 	-- },
+-- 	c = {
+-- 		name = "Copy to clipboard",
+-- 	},
+-- }, { prefix = '<leader>' })
+--
 -- LSP Saga
 -- https://github.com/nvimdev/lspsaga.nvim/blob/main/lua/lspsaga/command.lua
 -- LSP finder - Find the symbol's definition
