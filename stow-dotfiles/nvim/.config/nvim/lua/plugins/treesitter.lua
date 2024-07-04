@@ -133,8 +133,8 @@ return {
 		dependencies = { "nvim-treesitter/nvim-treesitter" },
 		config = function()
 			require 'treesitter-context'.setup {
-				-- mode = 'cursor',
-				mode = 'topline',
+				mode = 'cursor',
+				-- mode = 'topline',
 				separator = '┄',
 			}
 		end

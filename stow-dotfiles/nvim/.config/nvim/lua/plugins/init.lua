@@ -18,7 +18,7 @@ end
 
 -- If lazy.nvim is not installed, install it
 ---@diagnostic disable-next-line: undefined-field
-if not vim.uv.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	local system_obj = vim.system({
 		"git",
 		"clone",

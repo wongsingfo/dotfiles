@@ -49,8 +49,8 @@ return {
 				}),
 				formatting = {
 					format = lspkind.cmp_format({
-						-- mode = "text",
-						mode = "symbol",
+						mode = "text",
+						-- mode = "symbol",
 						max_width = 50,
 						symbol_map = {
 							Copilot = "",
