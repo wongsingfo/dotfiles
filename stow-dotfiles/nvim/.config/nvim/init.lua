@@ -1,8 +1,12 @@
 local vim = vim
-require("plugins")
 
+-- We need to set the mapleader before plugin setup.
+--
+-- `<leader>` is used for general custom key combinations,
+-- while `<localleader>` is used for more context-specific mappings.
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
+require("plugins")
 
 -- Darwin / Linux / Windows
 -- local os_name = vim.loop.os_uname().sysname
