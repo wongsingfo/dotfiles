@@ -1,3 +1,10 @@
+local function setup_folding()
+	vim.o.foldmethod = "expr"
+	vim.o.foldexpr = "nvim_treesitter#foldexpr()"
+	vim.o.foldnestmax = 3
+	vim.o.foldenable = false -- Disable folding at startup
+end
+
 local function setup_textobjects()
 	require 'nvim-treesitter.configs'.setup {
 		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
@@ -199,6 +206,8 @@ return {
 			val.ctermbg = nil
 			---@diagnostic disable-next-line: param-type-mismatch
 			vim.api.nvim_set_hl(0, "@operator", val)
+
+			setup_folding()
 		end
 	},
 
