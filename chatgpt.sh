@@ -108,7 +108,7 @@ function make_input_cli() {
 },
 {
 	"role": "user",
-	"content": "$content"
+	"content": $(jq --raw-input --slurp <<<"$content")
 }
 ]
 }
