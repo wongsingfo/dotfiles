@@ -64,6 +64,7 @@ local function setup_keybinding()
 	keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
 	keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>")
 	keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>")
+	keymap("n", "<leader>gk", "<cmd>lua vim.lsp.buf.hover()<CR>")
 	keymap("n", "<leader>gr", "<cmd>lua vim.lsp.buf.rename()<CR>")
 	keymap("n", "<leader>gd", "<cmd>lua vim.lsp.buf.implementation()<CR>")
 	keymap("n", "<leader>gt", "<cmd>lua vim.lsp.buf.type_definition()<CR>")
@@ -93,6 +94,10 @@ return {
 		lazy = true,
 		cmd = "Mason",
 		build = ":MasonUpdate",
+		config = true,
+	},
+	{
+		"j-hui/fidget.nvim",
 		config = true,
 	}
 }

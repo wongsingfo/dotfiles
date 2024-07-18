@@ -62,3 +62,14 @@ vim.opt.listchars = {
 	precedes = '«',
 	nbsp = '␣',
 }
+
+vim.keymap.set('n', '<leader>tm', function()
+       local enabled = not vim.wo.spell
+       vim.wo.wrap = enabled
+       vim.wo.spell = enabled
+       vim.wo.linebreak = enabled
+end, {
+       noremap = true,
+       silent = true,
+       nowait = true,
+})
