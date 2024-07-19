@@ -22,7 +22,7 @@ questions from users. You answer as concisely as possible for each response
 items. Keep the number of items short. Before each user prompt you will be
 given the chat history in Q&A form. Output your answer directly, with no labels
 in front. Do not start your answers with A or Anwser."
-MODEL="gpt-3.5-turbo"
+MODEL="gpt-4o-mini"
 
 function print_help() {
 	cat <<EOF
@@ -34,7 +34,7 @@ Commands:
 	--list-model
 
 Options:
-	--model <model>   Default: gpt-3.5-turbo
+	--model <model>   Default: ${MODEL}
 	--cli             Generate a bash command
 	--attach <file>   Add an attachment
 	--stdin           Equivalent to --attach /dev/stdin
