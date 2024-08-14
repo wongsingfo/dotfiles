@@ -1,25 +1,22 @@
-local function setup_lsp()
-	local lspconfig = require('lspconfig')
-
-	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
-	-- lspconfig.pyright.setup {}
-	-- lspconfig.tsserver.setup {}
-	lspconfig.pylsp.setup {}
-
+local function setup_clangd(lspconfig)
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
 	---@diagnostic disable-next-line: inject-field
 	capabilities.offsetEncoding = 'utf-8'
 	lspconfig.clangd.setup {
 		capabilities = capabilities
 	}
+end
 
+local function setup_rust_analyzer(lspconfig)
 	lspconfig.rust_analyzer.setup {
 		-- Server-specific settings. See `:help lspconfig-setup`
 		settings = {
 			['rust-analyzer'] = {},
 		},
 	}
+end
 
+local function setup_lua_ls(lspconfig)
 	lspconfig.lua_ls.setup {
 		-- If you primarily use lua-language-server for Neovim, and want to provide completions, analysis,
 		-- and location handling for plugins on runtime path, you can use the following settings.
@@ -55,25 +52,39 @@ local function setup_lsp()
 			Lua = {}
 		}
 	}
+end
 
+local function setup_lsp()
+	local lspconfig = require('lspconfig')
+
+	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
+	-- lspconfig.pyright.setup {}
+	-- lspconfig.tsserver.setup {}
 	-- lspconfig.bashls.setup {}()
+	lspconfig.biome.setup {}
+	lspconfig.pylsp.setup {}
+	setup_clangd(lspconfig)
+	setup_rust_analyzer(lspconfig)
+	setup_lua_ls(lspconfig)
 end
 
 local function setup_keybinding()
 	local keymap = vim.keymap.set
-	keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
-	keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>")
-	keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>")
-	keymap("n", "<leader>gk", "<cmd>lua vim.lsp.buf.hover()<CR>")
-	keymap("n", "<leader>gr", "<cmd>lua vim.lsp.buf.rename()<CR>")
-	keymap("n", "<leader>gd", "<cmd>lua vim.lsp.buf.implementation()<CR>")
-	keymap("n", "<leader>gt", "<cmd>lua vim.lsp.buf.type_definition()<CR>")
-	keymap("n", "<leader>gT", "<cmd>lua vim.lsp.buf.typehierarchy()<CR>")
-	keymap("n", "<leader>gx", "<cmd>lua vim.lsp.buf.code_action()<CR>")
-	keymap("n", "<leader>gi", "<cmd>lua vim.lsp.buf.incoming_calls()<CR>")
-	keymap("n", "<leader>go", "<cmd>lua vim.lsp.buf.outgoing_calls()<CR>")
-	keymap({ "n", "t" }, "<leader>gf", "<cmd>lua vim.lsp.buf.format()<CR>")
+	keymap("n", "gd", vim.lsp.buf.definition)
+	keymap("n", "gD", vim.lsp.buf.declaration)
+	keymap("n", "gr", vim.lsp.buf.references)
+	keymap("n", "<leader>gk", vim.lsp.buf.hover)
+	keymap("n", "<leader>gr", vim.lsp.buf.rename)
+	keymap("n", "<leader>gd", vim.lsp.buf.implementation)
+	keymap("n", "<leader>gt", vim.lsp.buf.type_definition)
+	keymap("n", "<leader>gT", vim.lsp.buf.typehierarchy)
+	keymap("n", "<leader>gx", vim.lsp.buf.code_action)
+	keymap("n", "<leader>gi", vim.lsp.buf.incoming_calls)
+	keymap("n", "<leader>go", vim.lsp.buf.outgoing_calls)
+	keymap({ "n", "t" }, "<leader>gf", vim.lsp.buf.format)
 	keymap("n", "<leader>gh", "<cmd>ClangdSwitchSourceHeader<CR>")
+	keymap("n", "]e", vim.diagnostic.goto_next)
+	keymap("n", "[e", vim.diagnostic.goto_prev)
 end
 
 return {

@@ -15,7 +15,7 @@ return {
 		keymap('n', '<leader>c', osc52.copy_operator, { expr = true })
 		keymap('n', '<leader>cc', '<leader>c_', { remap = true })
 		keymap('v', '<leader>c', osc52.copy_visual)
-		keymap('n', '<leader>cg', function()
+		keymap('n', '<leader>cf', function()
 			osc52.copy(get_file_line_info())
 		end)
 	end
