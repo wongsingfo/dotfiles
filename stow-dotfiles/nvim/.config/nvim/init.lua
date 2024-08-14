@@ -55,12 +55,12 @@ vim.o.wildmenu = true
 
 vim.opt.list = true
 vim.opt.listchars = {
-	trail = '•',
-	lead = '·',
-	tab = '▸ ',
-	extends = '»',
-	precedes = '«',
-	nbsp = '␣',
+       trail = '•',
+       lead = '·',
+       tab = '▸ ',
+       extends = '»',
+       precedes = '«',
+       nbsp = '␣',
 }
 
 vim.keymap.set('n', '<leader>tm', function()
@@ -68,8 +68,26 @@ vim.keymap.set('n', '<leader>tm', function()
        vim.wo.wrap = enabled
        vim.wo.spell = enabled
        vim.wo.linebreak = enabled
+
+       -- https://stackoverflow.com/questions/3033423/vim-command-to-restructure-force-text-to-80-columns
+       --- TODO: undo these
+       vim.wo.showbreak = "⮩ "
+       vim.cmd('set columns=80')
 end, {
        noremap = true,
        silent = true,
        nowait = true,
 })
+
+-- In SumatraPDF,
+-- nvr -c "OpenFileWindows %f %l"
+function OpenFileWindows(filename, line)
+       -- Convert Windows path to WSL path
+       local wsl_path = filename:gsub("\\", "/"):gsub("^([A-Za-z]):", "/mnt/%1"):lower()
+       -- Open the file using the WSL path
+       vim.cmd('e ' .. vim.fn.fnameescape(wsl_path))
+       -- Move to the specified line
+       vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+end
+
+vim.cmd('command! -nargs=+ OpenFileWindows lua OpenFileWindows(<f-args>)')

@@ -61,6 +61,7 @@ local function setup_lsp()
 	-- lspconfig.pyright.setup {}
 	-- lspconfig.tsserver.setup {}
 	-- lspconfig.bashls.setup {}()
+	lspconfig.texlab.setup {}
 	lspconfig.biome.setup {}
 	lspconfig.pylsp.setup {}
 	setup_clangd(lspconfig)
@@ -82,6 +83,10 @@ local function setup_keybinding()
 	keymap("n", "<leader>gi", vim.lsp.buf.incoming_calls)
 	keymap("n", "<leader>go", vim.lsp.buf.outgoing_calls)
 	keymap({ "n", "t" }, "<leader>gf", vim.lsp.buf.format)
+	keymap("n", "<leader>gg", function()
+		vim.lsp.buf.format()
+		vim.api.nvim_command('write')
+	end)
 	keymap("n", "<leader>gh", "<cmd>ClangdSwitchSourceHeader<CR>")
 	keymap("n", "]e", vim.diagnostic.goto_next)
 	keymap("n", "[e", vim.diagnostic.goto_prev)
