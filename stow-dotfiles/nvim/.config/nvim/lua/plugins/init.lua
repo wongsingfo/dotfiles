@@ -61,4 +61,5 @@ require('lazy').setup {
 	require("plugins.lsp"),
 	require("plugins.cmp"),
 	require("plugins.colorscheme"),
+	require("plugins.copilot"),
 }

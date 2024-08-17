@@ -3,9 +3,11 @@
 set -e
 set -o pipefail
 
-# API_HOST=https://api.openai.com
-# API_HOST=https://api.anthropic.com
+# API_HOST=api.openai.com
+# API_HOST=api.anthropic.com
+# API_HOST=api.deepseek.com
 API_HOST=api.gptsapi.net
+# API_KEY=$(cat $HOME/.config/DEEPSEEK_KEY)
 API_KEY=$(cat $HOME/.config/WILDCARD_KEY)
 TMP_FILE=/tmp/chatgpt-input.txt
 
@@ -22,6 +24,13 @@ questions from users. You answer as concisely as possible for each response
 items. Keep the number of items short. Before each user prompt you will be
 given the chat history in Q&A form. Output your answer directly, with no labels
 in front. Do not start your answers with A or Anwser."
+PROMPT_WRITING="You are a professor specializing in computer networking. Please
+act as the user's writing mentor to refine the upcoming paragraphs for
+submission to a top-tier computer science conference. Make the content
+accessible to most people, use plain word and make it easy to understand. Try
+to avoid using fancy words. Strengthen the logic and ensure it aligns with
+academic standards."
+# MODEL="deepseek-coder"
 MODEL="gpt-4o-mini"
 
 function print_help() {
@@ -39,6 +48,9 @@ Options:
 	--attach <file>   Add an attachment
 	--stdin           Equivalent to --attach /dev/stdin
 	--verbose
+
+Prompt override:
+	--writing         Writing assitant
 EOF
     exit 1
 }
@@ -79,6 +91,9 @@ while [ "$1" != "" ]; do
 		--list-model)
 			list_models
 			exit
+			;;
+		--writing)
+			PROMPT_SYSTEM=PROMPT_WRITING
 			;;
 		--verbose)
 			set -x

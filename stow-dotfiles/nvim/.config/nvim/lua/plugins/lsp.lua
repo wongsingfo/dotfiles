@@ -54,6 +54,21 @@ local function setup_lua_ls(lspconfig)
 	}
 end
 
+local function setup_py_lsp(lspconfig)
+	lspconfig.pylsp.setup {
+		settings = {
+			pylsp = {
+				plugins = {
+					pycodestyle = {
+						ignore = { 'W391' },
+						maxLineLength = 150
+					}
+				}
+			}
+		}
+	}
+end
+
 local function setup_lsp()
 	local lspconfig = require('lspconfig')
 
@@ -63,7 +78,7 @@ local function setup_lsp()
 	-- lspconfig.bashls.setup {}()
 	lspconfig.texlab.setup {}
 	lspconfig.biome.setup {}
-	lspconfig.pylsp.setup {}
+	setup_py_lsp(lspconfig)
 	setup_clangd(lspconfig)
 	setup_rust_analyzer(lspconfig)
 	setup_lua_ls(lspconfig)
