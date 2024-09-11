@@ -1,10 +1,9 @@
 return {
 	"yetone/avante.nvim",
 	event = "VeryLazy",
-	opts = {},
 	build = "make",
 	dependencies = {
-		"nvim-tree/nvim-web-devicons",
+		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
 		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
@@ -25,8 +24,8 @@ return {
 		require 'avante'.setup {
 			provider = "openai",
 			openai = {
-				endpoint = "https://api.xiaoai.plus",
-				model = "gpt-4o",
+				endpoint = "https://api.xiaoai.plus/v1",
+				model = "claude-3-5-sonnet-20240620",
 				temperature = 0,
 				max_tokens = 4096,
 			},
@@ -47,8 +46,12 @@ return {
 					next = "]]",
 					prev = "[[",
 				},
+				toggle = {
+					debug = "<leader>ad",
+					hint = "<leader>ah",
+				},
 			},
-			hints = { enabled = true },
+			hints = { enabled = false },
 			windows = {
 				wrap = true, -- similar to vim.o.wrap
 				width = 40, -- default % based on available width

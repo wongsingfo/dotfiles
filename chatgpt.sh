@@ -6,9 +6,11 @@ set -o pipefail
 # API_HOST=api.openai.com
 # API_HOST=api.anthropic.com
 # API_HOST=api.deepseek.com
-API_HOST=api.gptsapi.net
+# API_HOST=api.gptsapi.net
+API_HOST=api.xiaoai.plus
 # API_KEY=$(cat $HOME/.config/DEEPSEEK_KEY)
-API_KEY=$(cat $HOME/.config/WILDCARD_KEY)
+# API_KEY=$(cat $HOME/.config/WILDCARD_KEY)
+API_KEY=$(cat /home/chengke/.config/XIAOAI_KEY)
 TMP_FILE=/tmp/chatgpt-input.txt
 
 PROMPT_SYSTEM="You are a large language model. Answer as concisely as possible."
@@ -193,7 +195,7 @@ if [ -n "$cli_mode" ]; then
 	if [[ "$response" =~ ^[Yy]$ ]]; then
 		eval "$cmd"
 	else
-		"Abort"
+		echo "Abort"
 	fi
 	exit
 fi
