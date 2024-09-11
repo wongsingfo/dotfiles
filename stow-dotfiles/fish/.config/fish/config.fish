@@ -1,6 +1,14 @@
 set -x SHELL fish
-set -x PAGER less
-set -x EDITOR vim
+
+if command -q less
+	set -x PAGER less
+end
+
+if command -q nvim
+    set -x EDITOR nvim
+else if command -q vim
+    set -x EDITOR vim
+end
 
 set -x PATH $HOME/.local/bin $PATH
 set -gx MAMBA_EXE "$HOME/.local/bin/micromamba"
