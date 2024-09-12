@@ -69,6 +69,25 @@ local function setup_py_lsp(lspconfig)
 	}
 end
 
+local function setup_texlab(lspconfig)
+	lspconfig.texlab.setup {
+		settings = {
+			texlab = {
+				build = {
+					executable = 'latexmk',
+					args = { '-pdf', '-interaction=nonstopmode', '-synctex=1', '%f' },
+					onSave = false,
+					forwardSearchAfter = true,
+				},
+				forwardSearch = {
+					executable = "zathura",
+					args = { "--synctex-forward", "%l:1:%f", "%p" }
+				}
+			}
+		}
+	}
+end
+
 local function setup_lsp()
 	local lspconfig = require('lspconfig')
 
@@ -76,8 +95,7 @@ local function setup_lsp()
 	-- lspconfig.pyright.setup {}
 	-- lspconfig.tsserver.setup {}
 	-- lspconfig.bashls.setup {}()
-	lspconfig.texlab.setup {}
-	lspconfig.biome.setup {}
+	setup_texlab(lspconfig)
 	setup_py_lsp(lspconfig)
 	setup_clangd(lspconfig)
 	setup_rust_analyzer(lspconfig)

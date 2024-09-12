@@ -62,6 +62,7 @@ vim.opt.listchars = {
        precedes = '«',
        nbsp = '␣',
 }
+vim.o.showbreak = "⮩ "
 
 vim.keymap.set('n', '<leader>tm', function()
        local enabled = not vim.wo.spell
@@ -70,9 +71,7 @@ vim.keymap.set('n', '<leader>tm', function()
        vim.wo.linebreak = enabled
 
        -- https://stackoverflow.com/questions/3033423/vim-command-to-restructure-force-text-to-80-columns
-       --- TODO: undo these
-       vim.wo.showbreak = "⮩ "
-       vim.cmd('set columns=80')
+       -- vim.cmd('set columns=80')
 end, {
        noremap = true,
        silent = true,

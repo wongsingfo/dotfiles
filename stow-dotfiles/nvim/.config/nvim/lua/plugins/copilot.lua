@@ -25,7 +25,8 @@ return {
 			provider = "openai",
 			openai = {
 				endpoint = "https://api.xiaoai.plus/v1",
-				model = "claude-3-5-sonnet-20240620",
+				-- model = "claude-3-5-sonnet-20240620",
+				model = "gpt-4o-2024-08-06",
 				temperature = 0,
 				max_tokens = 4096,
 			},

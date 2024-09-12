@@ -10,7 +10,23 @@ else if command -q vim
     set -x EDITOR vim
 end
 
-set -x PATH $HOME/.local/bin $PATH
+function update_path
+	# Add .local/bin
+	if not string match -q -r "$HOME/.local/bin" $PATH
+		set -x PATH $HOME/.local/bin $PATH
+	end
+	# Check if $HOME/.cargo/bin is in $PATH
+	if not string match -q -r "$HOME/.cargo/bin" $PATH
+		# If it's not in $PATH, add it
+		set -x PATH $PATH $HOME/.cargo/bin
+	end
+	# Add /usr/local/texlive/2024/bin/x86_64-linux to PATH if it exists
+	if test -d /usr/local/texlive/2024/bin/x86_64-linux
+		set -x PATH /usr/local/texlive/2024/bin/x86_64-linux $PATH
+	end
+end
+update_path
+
 set -gx MAMBA_EXE "$HOME/.local/bin/micromamba"
 set -gx MAMBA_ROOT_PREFIX "$HOME/micromamba"
 
@@ -19,14 +35,8 @@ if test -f $MAMBA_EXE
 	$MAMBA_EXE shell activate | source
 end
 
-# WARN: this override the prompt set by MAMBA_EXE
+# This overrides the prompt set by MAMBA_EXE
 fish_config prompt choose scales
-
-# Check if $HOME/.cargo/bin is in $PATH
-if not string match -q -r "$HOME/.cargo/bin" $PATH
-	# If it's not in $PATH, add it
-	set -x PATH $PATH $HOME/.cargo/bin
-end
 
 set -x GPT_SHELL "$HOME/dotfiles/chatgpt.sh"
 if test -f $GPT_SHELL

@@ -1,0 +1,5 @@
+set selection-clipboard clipboard
+set selection-notification false
+
+set synctex true
+set synctex-editor-command "/home/chengke/.local/share/nvim/mason/bin/texlab inverse-search -i %{input} -l %{line}"
