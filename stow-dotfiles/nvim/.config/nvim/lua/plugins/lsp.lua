@@ -121,6 +121,8 @@ local function setup_keybinding()
 		vim.api.nvim_input('<Esc>')
 	end)
 	keymap("n", "<leader>gg", function()
+		vim.lsp.buf.format()
+		vim.api.nvim_command('write')
 		local clients = vim.lsp.get_active_clients()
 		for _, client in ipairs(clients) do
 			if client.name == "texlab" then
@@ -128,8 +130,6 @@ local function setup_keybinding()
 				return
 			end
 		end
-		vim.lsp.buf.format()
-		vim.api.nvim_command('write')
 	end)
 	keymap("n", "]e", vim.diagnostic.goto_next)
 	keymap("n", "[e", vim.diagnostic.goto_prev)
