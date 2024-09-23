@@ -78,6 +78,8 @@ end, {
        nowait = true,
 })
 
+vim.keymap.set('n', '<leader>gg', '<cmd>LspStart<CR>')
+
 -- In SumatraPDF,
 -- nvr -c "OpenFileWindows %f %l"
 function OpenFileWindows(filename, line)

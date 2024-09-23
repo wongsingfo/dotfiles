@@ -190,8 +190,8 @@ if [ -n "$cli_mode" ]; then
 	make_input_cli "$prompt"
 	cmd=$(make_request)
 	echo "$cmd"
-	read -p "Do you want to continue? (Y/n): " response
-	response=${response:-Y}
+	read -p "Do you want to continue? (y/N): " response
+	response=${response:-N}
 	if [[ "$response" =~ ^[Yy]$ ]]; then
 		eval "$cmd"
 	else
