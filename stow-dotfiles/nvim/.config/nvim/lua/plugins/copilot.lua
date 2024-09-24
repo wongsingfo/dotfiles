@@ -3,6 +3,7 @@ return {
 	event = "VeryLazy",
 	build = "make",
 	dependencies = {
+		"nvim-treesitter/nvim-treesitter",
 		"nvim-tree/nvim-web-devicons", -- or echasnovski/mini.icons
 		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
@@ -21,6 +22,10 @@ return {
 		if vim.fn.filereadable(openai_key_file) == 1 then
 			vim.env.OPENAI_API_KEY = vim.fn.readfile(openai_key_file)[1] or nil
 		end
+
+		vim.api.nvim_set_hl(0, 'AvanteDiffText', { bg = "#280000" })
+		vim.api.nvim_set_hl(0, 'AvanteDiffAdd', { bg = "#002800" })
+
 		require 'avante'.setup {
 			provider = "openai",
 			openai = {
@@ -55,6 +60,7 @@ return {
 			hints = { enabled = false },
 			windows = {
 				wrap = true, -- similar to vim.o.wrap
+				position = "right", -- the position of the sidebar
 				width = 40, -- default % based on available width
 				sidebar_header = {
 					align = "center", -- left, center, right for title
@@ -63,13 +69,12 @@ return {
 			},
 			highlights = {
 				diff = {
-					current = "DiffText",
-					incoming = "DiffAdd",
+					current = "AvanteDiffText",
+					incoming = "AvanteDiffAdd",
 				},
 			},
 			--- @class AvanteConflictUserConfig
 			diff = {
-				debug = false,
 				autojump = true,
 				---@type string | fun(): any
 				list_opener = "copen",

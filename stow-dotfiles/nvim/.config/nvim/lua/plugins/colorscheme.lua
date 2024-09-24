@@ -16,8 +16,10 @@ return {
 		vim.api.nvim_set_hl(0, 'TreesitterContext', { link = treecontext_bg })
 		vim.api.nvim_set_hl(0, 'TreesitterContextSeparator', { link = treecontext_bg })
 
-		-- Make the highlight compatible before the following commit
-		-- Ref: https://github.com/neovim/neovim/pull/26658/commits
-		vim.api.nvim_set_hl(0, 'NormalFloat', { link = 'Pmenu' })
+		-- https://www.reddit.com/r/neovim/comments/18c9ycw/fixing_neovimtree_float_background_color/
+		-- vim.api.nvim_set_hl(0, 'NormalFloat', { fg = 'none', bg = 'none' })
+		-- https://github.com/nshern/neovim-default-colorscheme-extras
+		vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'NvimDarkGrey3'  })
+		vim.api.nvim_set_hl(0, 'FloatTitle', { link = 'NormalFloat' })
 	end
 }
