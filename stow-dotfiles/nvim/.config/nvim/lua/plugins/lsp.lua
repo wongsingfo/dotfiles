@@ -123,7 +123,7 @@ local function setup_keybinding()
 	keymap("n", "<leader>gg", function()
 		vim.lsp.buf.format()
 		vim.api.nvim_command('write')
-		local clients = vim.lsp.get_active_clients()
+		local clients = vim.lsp.get_clients()
 		for _, client in ipairs(clients) do
 			if client.name == "texlab" then
 				vim.api.nvim_command('TexlabBuild')
@@ -137,6 +137,18 @@ local function setup_keybinding()
 	keymap("n", "<leader>gh", "<cmd>ClangdSwitchSourceHeader<CR>")
 end
 
+local function setup_win_border()
+	-- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization
+	-- To instead override globally
+	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+	---@diagnostic disable-next-line: duplicate-set-field
+	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+		opts = opts or {}
+		opts.border = opts.border or "rounded"
+		return orig_util_open_floating_preview(contents, syntax, opts, ...)
+	end
+end
+
 return {
 	{
 		"neovim/nvim-lspconfig",
@@ -144,6 +156,7 @@ return {
 		config = function()
 			setup_lsp()
 			setup_keybinding()
+			setup_win_border()
 		end,
 
 		dependencies = {

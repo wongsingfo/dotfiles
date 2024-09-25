@@ -50,11 +50,11 @@ require('lazy').setup {
 	"tpope/vim-surround",
 
 	-- Utility
-	{ "folke/which-key.nvim",      config = true },
 	{ "nmac427/guess-indent.nvim", config = true },
 	{ "chentoast/marks.nvim",      config = true },
 	"kevinhwang91/nvim-bqf", -- make Neovim's quickfix window better
 
+	require("plugins.whichkey"),
 	require("plugins.git"),
 	require("plugins.osc52"),
 	require("plugins.treesitter"),
