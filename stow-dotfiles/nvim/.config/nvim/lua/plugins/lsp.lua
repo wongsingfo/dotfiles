@@ -172,6 +172,18 @@ return {
 	},
 	{
 		"j-hui/fidget.nvim",
-		config = true,
+		config = function()
+			require 'fidget'.setup {
+				progress = {
+					suppress_on_insert = true,
+				},
+				notification = {
+					window = {
+						winblend = 10,
+						border = "rounded",
+					},
+				}
+			}
+		end,
 	}
 }
