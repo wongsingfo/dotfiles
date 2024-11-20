@@ -80,15 +80,17 @@ end, {
 
 vim.keymap.set('n', '<leader>gg', '<cmd>LspStart<CR>')
 
--- In SumatraPDF,
--- nvr -c "OpenFileWindows %f %l"
-function OpenFileWindows(filename, line)
-       -- Convert Windows path to WSL path
-       local wsl_path = filename:gsub("\\", "/"):gsub("^([A-Za-z]):", "/mnt/%1"):lower()
-       -- Open the file using the WSL path
-       vim.cmd('e ' .. vim.fn.fnameescape(wsl_path))
-       -- Move to the specified line
-       vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
-end
+-- For tex backward jump from SumatraPDF
+if vim.fn.has('win32') == 1 then
+    -- nvr -c "OpenFileWindows %f %l"
+    function OpenFileWindows(filename, line)
+        -- Convert Windows path to WSL path
+        local wsl_path = filename:gsub("\\", "/"):gsub("^([A-Za-z]):", "/mnt/%1"):lower()
+        -- Open the file using the WSL path
+        vim.cmd('e ' .. vim.fn.fnameescape(wsl_path))
+        -- Move to the specified line
+        vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+    end
 
-vim.cmd('command! -nargs=+ OpenFileWindows lua OpenFileWindows(<f-args>)')
+    vim.cmd('command! -nargs=+ OpenFileWindows lua OpenFileWindows(<f-args>)')
+end

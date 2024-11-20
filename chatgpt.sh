@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e
 set -o pipefail
 
@@ -7,12 +6,15 @@ set -o pipefail
 # API_HOST=api.anthropic.com
 # API_HOST=api.deepseek.com
 # API_HOST=api.gptsapi.net
-API_HOST=api.xiaoai.plus
-# API_KEY=$(cat $HOME/.config/DEEPSEEK_KEY)
-# API_KEY=$(cat $HOME/.config/WILDCARD_KEY)
-API_KEY=$(cat /home/chengke/.config/XIAOAI_KEY)
-TMP_FILE=/tmp/chatgpt-input.txt
+# API_HOST=api.xiaoai.plus
+API_HOST=api.lingyiwanwu.com
+API_KEY=$(cat $HOME/.llmkeys/YI_KEY)
 
+# MODEL="deepseek-coder"
+# MODEL="gpt-4o-mini"
+MODEL="yi-lightning"
+
+TMP_FILE=/tmp/chatgpt-input.txt
 PROMPT_SYSTEM="You are a large language model. Answer as concisely as possible."
 PROMPT_COMMAND_GENERATION="You are a Command Line Interface expert and your
 task is to provide functioning shell commands. Return a CLI command and nothing
@@ -32,8 +34,6 @@ submission to a top-tier computer science conference. Make the content
 accessible to most people, use plain word and make it easy to understand. Try
 to avoid using fancy words. Strengthen the logic and ensure it aligns with
 academic standards."
-# MODEL="deepseek-coder"
-MODEL="gpt-4o-mini"
 
 function print_help() {
 	cat <<EOF

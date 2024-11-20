@@ -8,54 +8,21 @@ return {
 		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
-		-- The below is optional, make sure to setup it properly if you have lazy=true
-		-- {
-		-- 	'MeanderingProgrammer/render-markdown.nvim',
-		-- 	opts = {
-		-- 		file_types = { "markdown", "Avante" },
-		-- 	},
-		-- 	ft = { "markdown", "Avante" },
-		-- }
 	},
 	config = function()
-		local openai_key_file = vim.fn.expand("$HOME/.config/XIAOAI_KEY")
-		if vim.fn.filereadable(openai_key_file) == 1 then
-			vim.env.OPENAI_API_KEY = vim.fn.readfile(openai_key_file)[1] or nil
-		end
-
-		vim.api.nvim_set_hl(0, 'AvanteDiffText', { bg = "#280000" })
-		vim.api.nvim_set_hl(0, 'AvanteDiffAdd', { bg = "#002800" })
+		local openai_key_file = vim.fn.expand("$HOME/.llmkeys/YI_KEY")
 
 		require 'avante'.setup {
 			provider = "openai",
 			openai = {
-				endpoint = "https://api.xiaoai.plus/v1",
-				model = "claude-3-5-sonnet-20240620",
+				-- endpoint = "https://api.xiaoai.plus/v1",
+				endpoint = "https://api.lingyiwanwu.com/v1",
+				-- model = "claude-3-5-sonnet-20241022",
 				-- model = "gpt-4o-2024-08-06",
+				model = "yi-lightning",
+				api_key_name = "cmd:cat " .. openai_key_file,
 				temperature = 0,
 				max_tokens = 4096,
-			},
-			mappings = {
-				ask = "<leader>aa",
-				edit = "<leader>ae",
-				refresh = "<leader>ar",
-				--- @class AvanteConflictMappings
-				diff = {
-					ours = "co",
-					theirs = "ct",
-					none = "c0",
-					both = "cb",
-					next = "]x",
-					prev = "[x",
-				},
-				jump = {
-					next = "]]",
-					prev = "[[",
-				},
-				toggle = {
-					debug = "<leader>ad",
-					hint = "<leader>ah",
-				},
 			},
 			hints = { enabled = false },
 			windows = {
@@ -67,18 +34,11 @@ return {
 					rounded = false,
 				},
 			},
-			highlights = {
-				diff = {
-					current = "AvanteDiffText",
-					incoming = "AvanteDiffAdd",
-				},
-			},
-			--- @class AvanteConflictUserConfig
-			diff = {
-				autojump = true,
-				---@type string | fun(): any
-				list_opener = "copen",
-			},
 		}
+
+		-- vim.api.nvim_set_hl(0, 'AvanteDiffAdd', { bg = "#002800" })
+		-- vim.api.nvim_set_hl(0, 'AvanteDiffText', { bg = "#280000" })
+		-- vim.api.nvim_set_hl(0, 'AvanteConflictIncoming', { bg = "#400000" })
+		-- vim.api.nvim_set_hl(0, 'AvanteConflictCurrent', { bg = "#280000" })
 	end
 }
