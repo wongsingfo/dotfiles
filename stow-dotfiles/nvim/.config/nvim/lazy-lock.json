@@ -28,5 +28,6 @@
   "plenary.nvim": { "branch": "master", "commit": "2d9b06177a975543726ce5c73fca176cedbffe9d" },
   "tcomment_vim": { "branch": "master", "commit": "48ab639a461d9b8344f7fee06cb69b4374863b13" },
   "vim-surround": { "branch": "master", "commit": "3d188ed2113431cf8dac77be61b842acb64433d9" },
-  "which-key.nvim": { "branch": "main", "commit": "8ab96b38a2530eacba5be717f52e04601eb59326" }
+  "which-key.nvim": { "branch": "main", "commit": "8ab96b38a2530eacba5be717f52e04601eb59326" },
+  "yazi.nvim": { "branch": "main", "commit": "2d6e9b9e2bda2294a978f60367598b75ea5b59d0" }
 }

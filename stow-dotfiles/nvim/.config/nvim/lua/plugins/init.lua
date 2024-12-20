@@ -54,6 +54,7 @@ require('lazy').setup {
 	{ "chentoast/marks.nvim",      config = true },
 	"kevinhwang91/nvim-bqf", -- make Neovim's quickfix window better
 
+	require("plugins.yazi"),
 	require("plugins.whichkey"),
 	require("plugins.git"),
 	require("plugins.osc52"),

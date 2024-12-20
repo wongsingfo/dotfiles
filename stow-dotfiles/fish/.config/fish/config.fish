@@ -18,11 +18,11 @@ function update_path
 	# Check if $HOME/.cargo/bin is in $PATH
 	if not string match -q -r "$HOME/.cargo/bin" $PATH
 		# If it's not in $PATH, add it
-		set -x PATH $PATH $HOME/.cargo/bin
+		set -x PATH $HOME/.cargo/bin $PATH
 	end
 	if not string match -q -r "/usr/local/texlive/2024/bin/x86_64-linux" $PATH
 		if test -d /usr/local/texlive/2024/bin/x86_64-linux
-			set -x PATH $PATH /usr/local/texlive/2024/bin/x86_64-linux
+			set -x PATH /usr/local/texlive/2024/bin/x86_64-linux $PATH
 		end
 	end
 end
@@ -58,5 +58,21 @@ if status is-interactive
 
 	if command -q fzf
 		fzf --fish | source
+	end
+
+	if command -q zoxide
+		zoxide init fish | source
+	end
+
+	if command -q yazi
+		# Then use y instead of yazi to start, and press q to quit, you'll see the CWD changed. Sometimes, you don't want to change, press Q to quit.
+		function y
+			set tmp (mktemp -t "yazi-cwd.XXXXXX")
+			yazi $argv --cwd-file="$tmp"
+			if set cwd (command cat -- "$tmp"); and [ -n "$cwd" ]; and [ "$cwd" != "$PWD" ]
+				builtin cd -- "$cwd"
+			end
+			rm -f -- "$tmp"
+		end
 	end
 end
