@@ -2,17 +2,10 @@
 set -e
 set -o pipefail
 
-# API_HOST=api.openai.com
-# API_HOST=api.anthropic.com
-# API_HOST=api.deepseek.com
-# API_HOST=api.gptsapi.net
-# API_HOST=api.xiaoai.plus
-API_HOST=api.lingyiwanwu.com
-API_KEY=$(cat $HOME/.llmkeys/YI_KEY)
-
-# MODEL="deepseek-coder"
-# MODEL="gpt-4o-mini"
-MODEL="yi-lightning"
+CONFIG_DIR=$HOME/.llmkeys
+API_HOST=$(cat $CONFIG_DIR/HOST)
+API_KEY=$(cat $CONFIG_DIR/$API_HOST)
+MODEL=$(cat $CONFIG_DIR/MODEL)
 
 TMP_FILE=/tmp/chatgpt-input.txt
 PROMPT_SYSTEM="You are a large language model. Answer as concisely as possible."

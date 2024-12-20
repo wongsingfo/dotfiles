@@ -10,35 +10,51 @@ return {
 		"MunifTanjim/nui.nvim",
 	},
 	config = function()
-		local openai_key_file = vim.fn.expand("$HOME/.llmkeys/YI_KEY")
+		-- Get the API host from the file
+		local host_file_path = vim.fn.expand("$HOME/.llmkeys/HOST")
+		local model_file_path = vim.fn.expand("$HOME/.llmkeys/MODEL")
 
-		require 'avante'.setup {
+		local function read_file_trim_whitespace(file_path)
+			local success, file = pcall(io.open, file_path, "r")
+			if success and file then
+				local content = file:read("*all"):gsub("%s+", "")
+				file:close()
+				return content
+			else
+				vim.notify("Failed to read file: " .. file_path, vim.log.levels.ERROR)
+				return nil
+			end
+		end
+
+		local api_host = read_file_trim_whitespace(host_file_path)
+		if not api_host then
+			return
+		end
+
+		local model = read_file_trim_whitespace(model_file_path) or "gpt-4o"
+		if not model then
+			return
+		end
+
+		local openai_key_file = vim.fn.expand("$HOME/.llmkeys/" .. api_host)
+
+		-- Setup Avante with OpenAI configuration using the model from the file
+		require('avante').setup {
 			provider = "openai",
 			openai = {
-				-- endpoint = "https://api.xiaoai.plus/v1",
-				endpoint = "https://api.lingyiwanwu.com/v1",
-				-- model = "claude-3-5-sonnet-20241022",
-				-- model = "gpt-4o-2024-08-06",
-				model = "yi-lightning",
+				endpoint = "https://" .. api_host .. '/v1',
+				model = model,
 				api_key_name = "cmd:cat " .. openai_key_file,
 				temperature = 0,
 				max_tokens = 4096,
 			},
 			hints = { enabled = false },
-			windows = {
-				wrap = true, -- similar to vim.o.wrap
-				position = "right", -- the position of the sidebar
-				width = 40, -- default % based on available width
-				sidebar_header = {
-					align = "center", -- left, center, right for title
-					rounded = false,
-				},
-			},
 		}
 
 		-- vim.api.nvim_set_hl(0, 'AvanteDiffAdd', { bg = "#002800" })
 		-- vim.api.nvim_set_hl(0, 'AvanteDiffText', { bg = "#280000" })
-		-- vim.api.nvim_set_hl(0, 'AvanteConflictIncoming', { bg = "#400000" })
-		-- vim.api.nvim_set_hl(0, 'AvanteConflictCurrent', { bg = "#280000" })
+		-- Set highlight groups for Avante conflicts
+		vim.api.nvim_set_hl(0, 'AvanteConflictIncoming', { bg = "#002800" })
+		vim.api.nvim_set_hl(0, 'AvanteConflictCurrent', { bg = "#280000" })
 	end
 }

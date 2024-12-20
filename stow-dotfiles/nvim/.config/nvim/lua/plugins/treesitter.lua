@@ -20,10 +20,10 @@ local function setup_textobjects()
 			swap = {
 				enable = true,
 				swap_next = {
-					["<leader>gs"] = "@parameter.inner",
+					["<leader>g>"] = "@parameter.inner",
 				},
 				swap_previous = {
-					["<leader>gS"] = "@parameter.inner", },
+					["<leader>g<"] = "@parameter.inner", },
 			},
 			select = {
 				enable = true,
