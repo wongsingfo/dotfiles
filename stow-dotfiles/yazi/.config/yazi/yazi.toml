@@ -1,0 +1,5 @@
+[[plugin.prepend_preloaders]]
+# Likewise, disable preloading for images
+mime = "image/*"
+run  = "noop"
+

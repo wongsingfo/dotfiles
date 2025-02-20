@@ -41,14 +41,34 @@ return {
 		-- Setup Avante with OpenAI configuration using the model from the file
 		require('avante').setup {
 			provider = "openai",
-			openai = {
-				endpoint = "https://" .. api_host .. '/v1',
-				model = model,
-				api_key_name = "cmd:cat " .. openai_key_file,
-				temperature = 0,
-				max_tokens = 4096,
-			},
+			cursor_applying_provider = "qwen",
+
 			hints = { enabled = false },
+			openai = {
+				endpoint = "https://api.gptsapi.net/v1",
+				api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/api.gptsapi.net"),
+				model = "gpt-4o", -- your desired model (or use gpt-4o, etc.)
+				timeout = 30000, -- timeout in milliseconds
+				temperature = 0, -- adjust if needed
+				max_tokens = 4096,
+				reasoning_effort = "high" -- only supported for "o" models
+			},
+			vendors = {
+				default = {
+					endpoint = "https://" .. api_host .. '/v1',
+					model = model,
+					api_key_name = "cmd:cat " .. openai_key_file,
+					temperature = 0,
+					max_tokens = 4096,
+				},
+				qwen = {
+					__inherited_from = 'openai',
+					api_key_name = "cmd:cat "  .. vim.fn.expand("$HOME/.llmkeys/api.siliconflow.cn"),
+					endpoint = 'https://api.siliconflow.cn/v1',
+					model = 'Qwen/Qwen2.5-Coder-32B-Instruct',
+					max_tokens = 4096, -- remember to increase this value, otherwise it will stop generating halfway
+				},
+			}
 		}
 
 		-- vim.api.nvim_set_hl(0, 'AvanteDiffAdd', { bg = "#002800" })
