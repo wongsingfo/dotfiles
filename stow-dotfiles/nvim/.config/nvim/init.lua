@@ -69,6 +69,7 @@ vim.keymap.set('n', '<leader>tm', function()
        vim.wo.wrap = enabled
        vim.wo.spell = enabled
        vim.wo.linebreak = enabled
+       vim.o.signcolumn = "yes"
 
        -- https://stackoverflow.com/questions/3033423/vim-command-to-restructure-force-text-to-80-columns
        -- vim.cmd('set columns=80')
