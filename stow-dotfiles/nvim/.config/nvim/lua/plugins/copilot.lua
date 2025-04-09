@@ -1,6 +1,7 @@
 return {
 	"yetone/avante.nvim",
 	event = "VeryLazy",
+	version = false,  -- Never set this value to "*"! Never!
 	build = "make",
 	dependencies = {
 		"nvim-treesitter/nvim-treesitter",
@@ -8,6 +9,7 @@ return {
 		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
+		"hrsh7th/nvim-cmp",
 	},
 	config = function()
 		-- Get the API host from the file
@@ -40,19 +42,11 @@ return {
 
 		-- Setup Avante with OpenAI configuration using the model from the file
 		require('avante').setup {
-			provider = "openai",
-			cursor_applying_provider = "qwen",
+			provider = "openrouter",
+			auto_suggestions_provider = "openrouter",
+			cursor_applying_provider = "openrouter",
 
 			hints = { enabled = false },
-			openai = {
-				endpoint = "https://api.gptsapi.net/v1",
-				api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/api.gptsapi.net"),
-				model = "gpt-4o", -- your desired model (or use gpt-4o, etc.)
-				timeout = 30000, -- timeout in milliseconds
-				temperature = 0, -- adjust if needed
-				max_tokens = 4096,
-				reasoning_effort = "high" -- only supported for "o" models
-			},
 			vendors = {
 				default = {
 					endpoint = "https://" .. api_host .. '/v1',
@@ -67,6 +61,12 @@ return {
 					endpoint = 'https://api.siliconflow.cn/v1',
 					model = 'Qwen/Qwen2.5-Coder-32B-Instruct',
 					max_tokens = 4096, -- remember to increase this value, otherwise it will stop generating halfway
+				},
+				openrouter = {
+					__inherited_from = 'openai',
+					endpoint = 'https://openrouter.ai/api/v1',
+					api_key_name = "cmd:cat "  .. vim.fn.expand("$HOME/.llmkeys/openrouter.ai"),
+					model = 'openai/gpt-4o-mini',
 				},
 			}
 		}

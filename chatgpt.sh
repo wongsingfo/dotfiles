@@ -4,7 +4,7 @@ set -o pipefail
 
 CONFIG_DIR=$HOME/.llmkeys
 API_HOST=$(cat $CONFIG_DIR/HOST)
-API_KEY=$(cat $CONFIG_DIR/$API_HOST)
+API_KEY=$(cat $CONFIG_DIR/$API_HOST | tr -d '\n')
 MODEL=$(cat $CONFIG_DIR/MODEL)
 
 TMP_FILE=/tmp/chatgpt-input.txt
