@@ -28,6 +28,7 @@ end
 return {
 	"yetone/avante.nvim",
 	event = "VeryLazy",
+	enabled = false,
 	version = false, -- Never set this value to "*"! Never!
 	build = "make",
 	dependencies = {
@@ -69,38 +70,44 @@ return {
 
 		-- Setup Avante with OpenAI configuration using the model from the file
 		require('avante').setup {
-			provider = "openrouter_sonnet",
-			auto_suggestions_provider = "openrouter_sonnet",
-			cursor_applying_provider = "openrouter_gpt",
+			provider = "openrouter-gpt",
+			auto_suggestions_provider = "openrouter-gpt",
+			cursor_applying_provider = "openrouter-gpt",
 
 			hints = { enabled = false },
 			vendors = {
-				default = {
+				["user-default"] = {
 					endpoint = "https://" .. api_host .. '/v1',
 					model = model,
 					api_key_name = "cmd:cat " .. openai_key_file,
 					temperature = 0,
 					max_tokens = 4096,
 				},
-				qwen = {
+				["siliconflow-qwen"] = {
 					__inherited_from = 'openai',
 					api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/api.siliconflow.cn"),
 					endpoint = 'https://api.siliconflow.cn/v1',
 					model = 'Qwen/Qwen2.5-Coder-32B-Instruct',
-					max_tokens = 4096, -- remember to increase this value, otherwise it will stop generating halfway
 				},
-				openrouter_sonnet = {
-					__inherited_from = 'openai',
+				["openrouter-sonnet"] = {
+					__inherited_from = 'claude',
 					endpoint = 'https://openrouter.ai/api/v1',
 					api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/openrouter.ai"),
 					model = 'anthropic/claude-3.7-sonnet',
 					disable_tools = true,
 				},
-				openrouter_gpt = {
+				["openrouter-gpt"] = {
 					__inherited_from = 'openai',
 					endpoint = 'https://openrouter.ai/api/v1',
 					api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/openrouter.ai"),
 					model = 'openai/gpt-4o-mini',
+					disable_tools = true,
+				},
+				["openrouter-gemini"] = {
+					__inherited_from = 'gemini',
+					endpoint = 'https://openrouter.ai/api/v1',
+					api_key_name = "cmd:cat " .. vim.fn.expand("$HOME/.llmkeys/openrouter.ai"),
+					model = 'google/gemini-2.0-flash-001',
 					disable_tools = true,
 				},
 			},

@@ -65,7 +65,8 @@ if status is-interactive
 	end
 
 	if command -q yazi
-		# Then use y instead of yazi to start, and press q to quit, you'll see the CWD changed. Sometimes, you don't want to change, press Q to quit.
+		# Then use y instead of yazi to start, and press q to quit, you'll see the CWD changed.
+		# Sometimes, if you don't want to change, press Q to quit.
 		function y
 			set tmp (mktemp -t "yazi-cwd.XXXXXX")
 			yazi $argv --cwd-file="$tmp"
@@ -73,6 +74,12 @@ if status is-interactive
 				builtin cd -- "$cwd"
 			end
 			rm -f -- "$tmp"
+		end
+	end
+
+	if command -q yazi
+		function icat
+			kitten icat $argv
 		end
 	end
 end

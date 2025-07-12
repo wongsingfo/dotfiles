@@ -7,6 +7,10 @@ API_HOST=$(cat $CONFIG_DIR/HOST)
 API_KEY=$(cat $CONFIG_DIR/$API_HOST | tr -d '\n')
 MODEL=$(cat $CONFIG_DIR/MODEL)
 
+if [ "$API_HOST" = "openrouter.ai" ]; then
+    API_HOST="${API_HOST}/api"
+fi
+
 TMP_FILE=/tmp/chatgpt-input.txt
 PROMPT_SYSTEM="You are a large language model. Answer as concisely as possible."
 PROMPT_COMMAND_GENERATION="You are a Command Line Interface expert and your
