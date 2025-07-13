@@ -78,6 +78,7 @@ return {
 	},
 	{
 		"jcdickinson/codeium.nvim",
+		enabled = false,
 		lazy = true,
 		cmd = "Codeium",
 		dependencies = {

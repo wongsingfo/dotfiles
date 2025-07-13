@@ -1,14 +1,13 @@
-local function setup_clangd(lspconfig)
+local function setup_clangd()
 	local capabilities = vim.lsp.protocol.make_client_capabilities()
 	---@diagnostic disable-next-line: inject-field
 	capabilities.offsetEncoding = 'utf-8'
-	lspconfig.clangd.setup {
+	vim.lsp.config.clangd = {
 		capabilities = capabilities
 	}
 end
-
-local function setup_rust_analyzer(lspconfig)
-	lspconfig.rust_analyzer.setup {
+local function setup_rust_analyzer()
+	vim.lsp.config.rust_analyzer = {
 		-- Server-specific settings. See `:help lspconfig-setup`
 		settings = {
 			['rust-analyzer'] = {},
@@ -16,46 +15,59 @@ local function setup_rust_analyzer(lspconfig)
 	}
 end
 
-local function setup_lua_ls(lspconfig)
-	lspconfig.lua_ls.setup {
-		-- If you primarily use lua-language-server for Neovim, and want to provide completions, analysis,
-		-- and location handling for plugins on runtime path, you can use the following settings.
+local function setup_lua_ls()
+	vim.lsp.config('lua_ls', {
 		on_init = function(client)
-			local path = client.workspace_folders[1].name
-			---@diagnostic disable-next-line: undefined-field
-			if vim.loop.fs_stat(path .. '/.luarc.json') or vim.loop.fs_stat(path .. '/.luarc.jsonc') then
-				return
+			if client.workspace_folders then
+				local path = client.workspace_folders[1].name
+				if
+				    path ~= vim.fn.stdpath('config')
+				    and (vim.uv.fs_stat(path .. '/.luarc.json') or vim.uv.fs_stat(path .. '/.luarc.jsonc'))
+				then
+					return
+				end
 			end
 
-			client.config.settings.Lua = vim.tbl_deep_extend('force',
-				client.config.settings.Lua, {
-					runtime = {
-						-- Tell the language server which version of Lua you're using
-						-- (most likely LuaJIT in the case of Neovim)
-						version = 'LuaJIT'
+			client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+				runtime = {
+					-- Tell the language server which version of Lua you're using (most
+					-- likely LuaJIT in the case of Neovim)
+					version = 'LuaJIT',
+					-- Tell the language server how to find Lua modules same way as Neovim
+					-- (see `:h lua-module-load`)
+					path = {
+						'lua/?.lua',
+						'lua/?/init.lua',
 					},
-					-- Make the server aware of Neovim runtime files
-					workspace = {
-						checkThirdParty = false,
-						library = {
-							vim.env.VIMRUNTIME
-							-- Depending on the usage, you might want to add additional paths here.
-							-- "${3rd}/luv/library"
-							-- "${3rd}/busted/library",
-						}
-						-- or pull in all of 'runtimepath'. NOTE: this is a lot slower
-						-- library = vim.api.nvim_get_runtime_file("", true)
+				},
+				-- Make the server aware of Neovim runtime files
+				workspace = {
+					checkThirdParty = false,
+					library = {
+						vim.env.VIMRUNTIME
+						-- Depending on the usage, you might want to add additional paths
+						-- here.
+						-- '${3rd}/luv/library'
+						-- '${3rd}/busted/library'
 					}
-				})
+					-- Or pull in all of 'runtimepath'.
+					-- NOTE: this is a lot slower and will cause issues when working on
+					-- your own configuration.
+					-- See https://github.com/neovim/nvim-lspconfig/issues/3189
+					-- library = {
+					--   vim.api.nvim_get_runtime_file('', true),
+					-- }
+				}
+			})
 		end,
 		settings = {
 			Lua = {}
 		}
-	}
+	})
 end
 
-local function setup_py_lsp(lspconfig)
-	lspconfig.pylsp.setup {
+local function setup_pylsp()
+	vim.lsp.config.pylsp = {
 		settings = {
 			pylsp = {
 				plugins = {
@@ -69,8 +81,8 @@ local function setup_py_lsp(lspconfig)
 	}
 end
 
-local function setup_texlab(lspconfig)
-	lspconfig.texlab.setup {
+local function setup_texlab()
+	vim.lsp.config.texlab = {
 		settings = {
 			texlab = {
 				build = {
@@ -89,17 +101,15 @@ local function setup_texlab(lspconfig)
 end
 
 local function setup_lsp()
-	local lspconfig = require('lspconfig')
-
-	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md
+	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
 	-- lspconfig.pyright.setup {}
 	-- lspconfig.tsserver.setup {}
 	-- lspconfig.bashls.setup {}()
-	setup_texlab(lspconfig)
-	setup_py_lsp(lspconfig)
-	setup_clangd(lspconfig)
-	setup_rust_analyzer(lspconfig)
-	setup_lua_ls(lspconfig)
+	setup_texlab()
+	setup_pylsp()
+	setup_clangd()
+	setup_rust_analyzer()
+	setup_lua_ls()
 end
 
 local function setup_keybinding()
@@ -131,8 +141,12 @@ local function setup_keybinding()
 			end
 		end
 	end, { desc = "Format and save" })
-	keymap("n", "]e", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
-	keymap("n", "[e", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+	keymap("n", "]e", function()
+		vim.diagnostic.jump({ count = 1 })
+	end, { desc = "Go to next diagnostic" })
+	keymap("n", "[e", function()
+		vim.diagnostic.jump({ count = -1 })
+	end, { desc = "Go to previous diagnostic" })
 
 	keymap("n", "<leader>gh", "<cmd>ClangdSwitchSourceHeader<CR>")
 end
@@ -172,6 +186,7 @@ return {
 	},
 	{
 		"j-hui/fidget.nvim",
+		enabled = true,
 		config = function()
 			require 'fidget'.setup {
 				progress = {
