@@ -184,21 +184,4 @@ return {
 		build = ":MasonUpdate",
 		config = true,
 	},
-	{
-		"j-hui/fidget.nvim",
-		enabled = true,
-		config = function()
-			require 'fidget'.setup {
-				progress = {
-					suppress_on_insert = true,
-				},
-				notification = {
-					window = {
-						winblend = 10,
-						border = "rounded",
-					},
-				}
-			}
-		end,
-	}
 }

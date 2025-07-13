@@ -65,4 +65,5 @@ require('lazy').setup {
 	require("plugins.avante"),
 	require("plugins.symboltable"),
 	require("plugins.llm"),
+	require("plugins.mini"),
 }
