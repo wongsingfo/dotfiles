@@ -1,0 +1,8 @@
+- model_id: tencent/deepseek-v3
+  model_name: deepseek-v3-0324
+  api_base: "https://api.lkeap.cloud.tencent.com/v1"
+  api_key_name: tencent
+- model_id: tencent/deepseek-r1
+  model_name: deepseek-r1
+  api_base: "https://api.lkeap.cloud.tencent.com/v1"
+  api_key_name: tencent
