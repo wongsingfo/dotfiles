@@ -2,6 +2,7 @@ FROM mirrors.tencent.com/tlinux/tlinux3.3
 
 # Install required packages
 RUN dnf install -y \
+ccache \
 cmake \
 curl \
 dumb-init \
@@ -10,10 +11,12 @@ fzf \
 gcc \
 git \
 make \
+ninja-build \
 nodejs \
 npm \
 openssh-clients \
 python39 \
+python39-devel \
 ripgrep \
 rsync \
 sshpass \
