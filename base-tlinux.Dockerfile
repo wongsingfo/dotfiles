@@ -10,11 +10,10 @@ fd-find \
 fzf \
 gcc \
 git \
-glog-devel
+git-lfs \
+glog-devel \
 make \
 ninja-build \
-nodejs \
-npm \
 openssh-clients \
 python39 \
 python39-devel \
@@ -27,7 +26,9 @@ protobuf-devel \
 tmux \
 unzip \
 which \
+zoxide \
 && dnf clean all && \
+update-alternatives --set python3 /usr/bin/python3.9 && \
 npm install -g trzsz neovim
 
 WORKDIR /data/chengke
@@ -39,6 +40,8 @@ RUN cd /root/.dotfiles && stow -t /root -R *
 
 # https://nodejs.org/dist/v24.4.0/node-v24.4.0-linux-x64.tar.xz
 # tar -xJvf node-v24.4.0-linux-x64.tar.xz --strip-components=1 -C /usr/local
+
+# npm install -g @anthropic-ai/claude-code @musistudio/claude-code-router
 
 # Install and setup fish
 RUN curl -L https://github.com/fish-shell/fish-shell/releases/download/4.0.2/fish-static-amd64-4.0.2.tar.xz | tar -xJvC /usr/bin && \
@@ -55,4 +58,4 @@ rm -rf "$TEMP_DIR"'
 
 # Install Neovim and required tools
 RUN curl -L https://github.com/neovim/neovim-releases/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz | tar zxf - -C /usr/local/ --strip-components=1
-# nvim --headless +"Lazy restore" +"TSUpdateSync" +"Mason" +"MasonInstall pyright" +"MasonInstall black" +"MasonInstall clangd"
+# nvim --headless +"Lazy restore" +"TSUpdateSync" +"Mason" +"MasonInstall pyright" +"MasonInstall black" +"MasonInstall clangd"                                                                                                                             
