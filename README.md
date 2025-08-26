@@ -72,6 +72,45 @@ If you need to re-enter the container, execute the following:
 docker start -i --detach-keys='ctrl-x,e' box
 ```
 
+## Using Docker with GPU Support
+
+To leverage the power of your GPU within Docker containers, you need to install
+the NVIDIA Container Toolkit. This toolkit allows you to seamlessly run
+GPU-accelerated applications inside containers.
+
+## Installation
+
+Refer to the [official NVIDIA Container Toolkit installation
+guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+for full details:
+
+Below is a simplified copy of the essential installation steps:
+
+```sh
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
+  && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+apt update
+
+export NVIDIA_CONTAINER_TOOLKIT_VERSION=1.17.8-1
+apt-get install -y \
+      nvidia-container-toolkit=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+      nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+      libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
+      libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
+```
+
+## Running a GPU-Enabled Container
+
+Once the NVIDIA Container Toolkit is installed, you can run containers with GPU
+support using the `--gpus all` flag:
+
+```sh
+docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
+```
+
 ## Troubleshooting
 
 ### Permission Issues
@@ -100,3 +139,10 @@ the detach key, change the config file in the `~/.docker/config.json` file.
     "detachKeys": "ctrl-x,e"
 }
 ```
+
+### Docker cgroup issues (NVIDIA & LXC)
+
+https://stackoverflow.com/questions/77051751/unable-to-run-nvidia-gpu-enabled-docker-containers-inside-an-lxc-container
+
+Modify the NVIDIA config file `/etc/nvidia-container-runtime/config.toml`, and
+set no-cgroups = true.
