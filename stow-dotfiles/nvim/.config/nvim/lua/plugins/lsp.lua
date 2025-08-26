@@ -136,7 +136,7 @@ local function setup_keybinding()
 		local clients = vim.lsp.get_clients()
 		for _, client in ipairs(clients) do
 			if client.name == "texlab" then
-				vim.api.nvim_command('TexlabBuild')
+				vim.api.nvim_command("LspTexlabBuild")
 				return
 			end
 		end
