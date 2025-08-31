@@ -1,76 +1,79 @@
-# Manage Packages with Micromamba
-
-In situations where root privileges are not available to install required
-packages, Micromamba can be a useful tool. Here's a simple guide on how to use
-Micromamba to manage packages:
-
-Install with:
-```
-"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
-```
-
-Export the existing environment to a YAML file named `oldenv.yaml` using the
-following command:
-
-```
-micromamba env export --name oldenv > oldenv.yaml
-```
-
-Create a new environment named `newenv` using the exported YAML file
-`oldenv.yaml`:
-
-```
-micromamba env create --name newenv --file oldenv.yaml
-```
-
 # Dockerize the Dotfiles
 
-Have you ever been in a situation where you need to reconfigure your
-development environment every time you face a new machine? The relentless cycle
-of package installations, dotfile transfers, and occasionally wrestling with
-network proxies can be downright maddening. But worry not, we can harnessed the
-power of Docker, to deliver a solution that will forever change the way you set
-up your development environment. With just one command, you can wave goodbye to
-the days of manual configuration.
+Tired of endless configuration when setting up a new dev machine? This guide
+shows you how to leverage Docker to create a portable, reproducible development
+environment. With a single command, you can bring up your customized setup,
+complete with dotfiles, dependencies, and GPU support.
 
-## Quick Start
+## Build the Image
 
-First, ensure that you have Docker installed. If you're using the apt package
-manager, you can do so with the following command:
+If you're behind a corporate or local proxy, ensure Docker can access external
+resources.
 
-```
-sudo apt install docker.io
-```
-
-Now, you're ready to begin using our Dockerized Dotfiles. Start by running this
-command:
+Create `/etc/systemd/system/docker.service.d/http-proxy.conf` with the following content:
 
 ```
-docker run -it -v $(pwd):/work --name box wongsingfo/dotfiles
-
-# Or also bind the auth files
-docker run -it \
-    -v $(pwd):/work -v $HOME/.ssh:/home/ubuntu/.ssh \
-    -v $HOME/.cache/nvim/codeium/config.json:/home/ubuntu/.cache/nvim/codeium/config.json \
-    -v $HOME/.config/OPENAI_API_KEY:/home/ubuntu/.config/OPENAI_API_KEY \
-    --name box wongsingfo/dotfiles
-
-# Allow gdb to disable the ASLR
-# https://stackoverflow.com/questions/35860527/warning-error-disabling-address-space-randomization-operation-not-permitted
-docker run -it \
-    --cap-add=SYS_PTRACE --security-opt seccomp=unconfined
-    wongsingfo/dotfiles:ctf
+[Service]
+Environment="ALL_PROXY=http://172.17.0.1:7890"
 ```
 
-To detach from the container, use the default key combination: Ctrl-P followed
-by Ctrl-Q.
-
-If you need to re-enter the container, execute the following:
+Remeber to restart the docker:
 
 ```
-# We change the detach keys to avoid the confliction with the `Previous` command in the shell
-docker start -i --detach-keys='ctrl-x,e' box
+systemctl daemon-reload
+systemctl restart docker
 ```
+
+Ref: https://stackoverflow.com/questions/23111631/cannot-download-docker-images-behind-a-proxy
+
+Include the `build-arg` for the proxy during the build:
+
+```
+docker build -t dev -f base-ubuntu.Dockerfile \
+    --build-arg ALL_PROXY="http://172.17.0.1:7890" --build-arg HTTPS_PROXY="http://172.17.0.1:7890"\
+    .
+```
+
+## Run the Container
+
+Once the image is built, you can run your development container:
+
+```
+docker run -v $HOME:/work -v $HOME/.ssh:/home/ubuntu/.ssh \
+    --cap-add=SYS_ADMIN --security-opt seccomp=unconfined \
+    --network host -itd \
+    --runtime=nvidia --gpus all \
+    --name box dev
+```
+
+Explanation of Flags:
+- `-v $HOME:/work`: Mounts your host's home directory to `/work` inside the
+container. This is crucial for accessing your project files.
+- `-v $HOME/.ssh:/home/ubuntu/.ssh`: Mounts your SSH keys for seamless Git and
+remote access within the container.
+- `--cap-add=SYS_ADMIN --security-opt seccomp=unconfined`: Provides necessary
+capabilities for certain operations, often required for tools that modify the
+system (e.g., some language environment managers).
+- *Ref: [Stack Overflow](https://stackoverflow.com/questions/35860527/warning-error-disabling-address-space-randomization-operation-not-permitted)*
+- `--network host`: Uses the host's network stack, allowing the container to
+access network services on the host directly and vice-versa.
+- `-itd`: Runs the container in interactive (`-i`), pseudo-TTY (`-t`), and
+detached (`-d`) modes.
+- `--runtime=nvidia --gpus all`: Enables NVIDIA GPU support, allowing the
+container to access all available GPUs.
+- `--name box`: Assigns the name `box` to your container for easy
+identification.
+- `dev`: The name of the Docker image to use.
+
+Use the following to attach to the container:
+
+```
+docker exec --detach-keys='ctrl-x,e' -it box fish
+```
+
+Explanation of Flags:
+- `--detach-keys='ctrl-x,e'`: Changes the Docker detach key sequence to
+`Ctrl-X, E` to avoid conflicts with common terminal shortcuts (like `Ctrl-P`).
 
 ## Using Docker with GPU Support
 
@@ -78,7 +81,7 @@ To leverage the power of your GPU within Docker containers, you need to install
 the NVIDIA Container Toolkit. This toolkit allows you to seamlessly run
 GPU-accelerated applications inside containers.
 
-## Installation
+### Installation
 
 Refer to the [official NVIDIA Container Toolkit installation
 guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
@@ -100,15 +103,6 @@ apt-get install -y \
       nvidia-container-toolkit-base=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
       libnvidia-container-tools=${NVIDIA_CONTAINER_TOOLKIT_VERSION} \
       libnvidia-container1=${NVIDIA_CONTAINER_TOOLKIT_VERSION}
-```
-
-## Running a GPU-Enabled Container
-
-Once the NVIDIA Container Toolkit is installed, you can run containers with GPU
-support using the `--gpus all` flag:
-
-```sh
-docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
 ```
 
 ## Troubleshooting
@@ -142,7 +136,32 @@ the detach key, change the config file in the `~/.docker/config.json` file.
 
 ### Docker cgroup issues (NVIDIA & LXC)
 
-https://stackoverflow.com/questions/77051751/unable-to-run-nvidia-gpu-enabled-docker-containers-inside-an-lxc-container
+Solution: Modify the NVIDIA config file
+`/etc/nvidia-container-runtime/config.toml`, and set `no-cgroups = true`.
 
-Modify the NVIDIA config file `/etc/nvidia-container-runtime/config.toml`, and
-set no-cgroups = true.
+Ref: https://stackoverflow.com/questions/77051751/unable-to-run-nvidia-gpu-enabled-docker-containers-inside-an-lxc-container
+
+# Manage Packages with Micromamba (Deprecated)
+
+In situations where root privileges are not available to install required
+packages, Micromamba can be a useful tool. Here's a simple guide on how to use
+Micromamba to manage packages:
+
+Install with:
+```
+"${SHELL}" <(curl -L micro.mamba.pm/install.sh)
+```
+
+Export the existing environment to a YAML file named `oldenv.yaml` using the
+following command:
+
+```
+micromamba env export --name oldenv > oldenv.yaml
+```
+
+Create a new environment named `newenv` using the exported YAML file
+`oldenv.yaml`:
+
+```
+micromamba env create --name newenv --file oldenv.yaml
+```
