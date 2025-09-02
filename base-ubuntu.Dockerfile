@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 	fish \
 	fzf \
 	gcc \
+	g++ \
 	git \
 	iproute2 \
 	jq \
