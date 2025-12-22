@@ -18,6 +18,8 @@ local keymap = vim.keymap.set
 return {
 	"lewis6991/gitsigns.nvim",
 	config = function()
+		local wk = require("which-key")
+		wk.add({ '<leader>h', group = 'git' })
 		local gs = require('gitsigns')
 		gs.setup {}
 		keymap('n', ']c', function()

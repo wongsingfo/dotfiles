@@ -40,7 +40,7 @@ return {
 					{ name = 'nvim_lsp_signature_help' },
 
 					-- { name = 'copilot' },
-					{ name = 'codeium' },
+					-- { name = 'codeium' },
 
 					{ name = 'nvim_lsp' },
 					{ name = 'path' },
@@ -54,7 +54,7 @@ return {
 						max_width = 50,
 						symbol_map = {
 							Copilot = "",
-							Codeium = "",
+							-- Codeium = "",
 						}
 					})
 				}
@@ -76,16 +76,16 @@ return {
 			-- })
 		end,
 	},
-	{
-		"jcdickinson/codeium.nvim",
-		enabled = false,
-		lazy = true,
-		cmd = "Codeium",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-		},
-		config = function()
-			require("codeium").setup {}
-		end
-	},
+	-- {
+	-- 	"jcdickinson/codeium.nvim",
+	-- 	enabled = false,
+	-- 	lazy = true,
+	-- 	cmd = "Codeium",
+	-- 	dependencies = {
+	-- 		"nvim-lua/plenary.nvim",
+	-- 	},
+	-- 	config = function()
+	-- 		require("codeium").setup {}
+	-- 	end
+	-- },
 }

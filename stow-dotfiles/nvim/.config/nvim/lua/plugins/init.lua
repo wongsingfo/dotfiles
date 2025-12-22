@@ -62,8 +62,9 @@ require('lazy').setup {
 	require("plugins.lsp"),
 	require("plugins.cmp"),
 	require("plugins.colorscheme"),
-	require("plugins.avante"),
 	require("plugins.symboltable"),
 	require("plugins.llm"),
 	require("plugins.mini"),
+	require("plugins.opencode"),
+	-- require("plugins.avante"),
 }
