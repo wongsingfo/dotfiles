@@ -60,7 +60,7 @@ require('lazy').setup {
 	require("plugins.osc52"),
 	require("plugins.treesitter"),
 	require("plugins.lsp"),
-	require("plugins.cmp"),
+	-- require("plugins.cmp"),
 	require("plugins.colorscheme"),
 	require("plugins.symboltable"),
 	require("plugins.llm"),
