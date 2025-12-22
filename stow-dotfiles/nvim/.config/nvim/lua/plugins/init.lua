@@ -66,5 +66,6 @@ require('lazy').setup {
 	require("plugins.llm"),
 	require("plugins.mini"),
 	require("plugins.opencode"),
+	require("plugins.telescope"),
 	-- require("plugins.avante"),
 }
