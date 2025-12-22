@@ -36,10 +36,6 @@ if test -f $MAMBA_EXE
 	$MAMBA_EXE shell activate | source
 end
 
-if command -q go
-	set -x GOPROXY https://goproxy.cn
-end
-
 # This overrides the prompt set by MAMBA_EXE
 fish_config prompt choose scales
 
@@ -81,5 +77,13 @@ if status is-interactive
 		function icat
 			kitten icat $argv
 		end
+	end
+
+	function proxy-for --description "Run command with local proxy settings"
+		set -lx HTTP_PROXY "http://127.0.0.1:7890"
+		set -lx HTTPS_PROXY "http://127.0.0.1:7890"
+		set -lx ALL_PROXY "http://127.0.0.1:7890"
+		set -lx NO_PROXY "localhost,127.0.0.1,::1"
+		$argv
 	end
 end

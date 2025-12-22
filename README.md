@@ -5,6 +5,16 @@ shows you how to leverage Docker to create a portable, reproducible development
 environment. With a single command, you can bring up your customized setup,
 complete with dotfiles, dependencies, and GPU support.
 
+## Fish Shell setup
+
+```bash
+if [[ $(ps --no-header --pid=$PPID --format=comm) != "fish" && -z ${BASH_EXECUTION_STRING} && ${SHLVL} == 1 ]]
+then
+        shopt -q login_shell && LOGIN_OPTION='--login' || LOGIN_OPTION=''
+        exec fish $LOGIN_OPTION
+fi
+```
+
 ## Build the Image
 
 If you're behind a corporate or local proxy, ensure Docker can access external
