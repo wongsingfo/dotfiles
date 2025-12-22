@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-gemini-auth@latest"],
+  "permission": {
+    "edit": "allow",
+    "bash": "ask",
+    "webfetch": "deny",
+    "doom_loop": "ask",
+    "external_directory": "ask"
+  }
+}
