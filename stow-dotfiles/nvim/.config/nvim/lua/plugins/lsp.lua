@@ -105,6 +105,7 @@ local function setup_lsp()
 	-- lspconfig.pyright.setup {}
 	-- lspconfig.tsserver.setup {}
 	-- lspconfig.bashls.setup {}()
+	vim.lsp.enable('gopls')
 	setup_texlab()
 	setup_pylsp()
 	setup_clangd()
