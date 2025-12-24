@@ -141,8 +141,8 @@ return {
 		config = function()
 			require 'treesitter-context'.setup {
 				mode = 'cursor',
-				-- mode = 'topline',
-				separator = '┄',
+				max_lines = 2,
+				-- separator = '┄',
 			}
 		end
 	},

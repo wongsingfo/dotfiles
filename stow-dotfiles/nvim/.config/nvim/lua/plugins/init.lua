@@ -45,10 +45,6 @@ require('lazy').setup {
 	-- List all plugins here --
 	---------------------------
 
-	-- More Key
-	"tomtom/tcomment_vim",
-	"tpope/vim-surround",
-
 	-- Utility
 	{ "nmac427/guess-indent.nvim", config = true },
 	{ "chentoast/marks.nvim",      config = true },
@@ -60,12 +56,10 @@ require('lazy').setup {
 	require("plugins.osc52"),
 	require("plugins.treesitter"),
 	require("plugins.lsp"),
-	-- require("plugins.cmp"),
 	require("plugins.colorscheme"),
 	require("plugins.symboltable"),
 	require("plugins.llm"),
 	require("plugins.mini"),
 	require("plugins.opencode"),
 	require("plugins.telescope"),
-	-- require("plugins.avante"),
 }
