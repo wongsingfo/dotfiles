@@ -67,7 +67,7 @@ local function setup_lua_ls()
 end
 
 local function setup_pylsp()
-	vim.lsp.config.pylsp = {
+	vim.lsp.config('pylsp', {
 		settings = {
 			pylsp = {
 				plugins = {
@@ -78,7 +78,7 @@ local function setup_pylsp()
 				}
 			}
 		}
-	}
+	})
 end
 
 local function setup_texlab()
