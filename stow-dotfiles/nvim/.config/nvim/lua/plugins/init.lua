@@ -49,6 +49,7 @@ require('lazy').setup {
 	{ "nmac427/guess-indent.nvim", config = true },
 	{ "chentoast/marks.nvim",      config = true },
 	"kevinhwang91/nvim-bqf", -- make Neovim's quickfix window better
+	"tpope/vim-surround",
 
 	require("plugins.yazi"),
 	require("plugins.whichkey"),

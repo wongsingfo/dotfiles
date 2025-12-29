@@ -7,6 +7,8 @@ return {
 		require('mini.pick').setup()
 		require('mini.sessions').setup()
 		require('mini.comment').setup()
-		require('mini.surround').setup()
+
+		-- The mini.surround uses a different keymapping that is not popular
+		-- require('mini.surround').setup()
 	end
 }
