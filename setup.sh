@@ -48,7 +48,6 @@ if [ -f /etc/debian_version ]; then
         cmake \
         curl \
         fd-find \
-        fish \
         fzf \
         gcc g++ \
         git \
@@ -66,6 +65,12 @@ if [ -f /etc/debian_version ]; then
         unzip \
         uuid-runtime \
         zoxide
+
+    # Install latest Fish shell from PPA
+    echo "[fish] Installing Fish shell from PPA..."
+    sudo add-apt-repository -y ppa:fish-shell/release-4
+    sudo apt-get update
+    sudo apt-get install -y fish
 else
     echo "[system] Warning: Not on Debian/Ubuntu. Skipping apt package installation."
     echo "[system] Please ensure you have the equivalent packages installed manually."
@@ -177,12 +182,8 @@ if [ -z "$LANG" ]; then
 fi
 
 # Setup Fish Shell
-echo "[fish] Setting up Fish shell plugins..."
-# Check if fish is in /etc/shells
-if ! grep -q "$(which fish)" /etc/shells; then
-    echo "[fish] Adding fish to /etc/shells..."
-    which fish | sudo tee -a /etc/shells
-fi
+echo "[fish] Setting up Fish shell..."
+echo "[fish] Fish version: $(fish --version)"
 
 # Install Fisher and plugins
 fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
