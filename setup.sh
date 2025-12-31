@@ -47,8 +47,6 @@ if [ -f /etc/debian_version ]; then
         bat \
         cmake \
         curl \
-        fd-find \
-        fzf \
         gcc g++ \
         git \
         iproute2 \
@@ -58,6 +56,7 @@ if [ -f /etc/debian_version ]; then
         python3 python3-pynvim python3-venv \
         ripgrep \
         rsync \
+        software-properties-common \
         stow \
         sudo \
         ssh \
@@ -74,6 +73,33 @@ if [ -f /etc/debian_version ]; then
 else
     echo "[system] Warning: Not on Debian/Ubuntu. Skipping apt package installation."
     echo "[system] Please ensure you have the equivalent packages installed manually."
+fi
+
+
+# Install latest fzf from GitHub releases
+if ! command -v fzf &> /dev/null; then
+    echo "[fzf] Installing latest fzf from GitHub..."
+    curl -L "https://github.com/junegunn/fzf/releases/download/v0.67.0/fzf-0.67.0-linux_amd64.tar.gz" -o /tmp/fzf.tar.gz
+    sudo tar -xzf /tmp/fzf.tar.gz -C /tmp
+    sudo mv /tmp/fzf /usr/local/bin/
+    sudo chmod +x /usr/local/bin/fzf
+    rm /tmp/fzf.tar.gz
+    echo "[fzf] fzf installed successfully."
+else
+    echo "[fzf] fzf is already installed."
+fi
+
+# Install fd from GitHub releases
+if ! command -v fd &> /dev/null; then
+    echo "[fd] Installing fd from GitHub..."
+    sudo curl -L "https://github.com/sharkdp/fd/releases/download/v10.3.0/fd-v10.3.0-x86_64-unknown-linux-gnu.tar.gz" -o /tmp/fd.tar.gz
+    sudo tar -xzf /tmp/fd.tar.gz -C /tmp
+    sudo mv /tmp/fd-v10.3.0-x86_64-unknown-linux-gnu/fd /usr/local/bin/
+    sudo chmod +x /usr/local/bin/fd
+    rm -rf /tmp/fd.tar.gz /tmp/fd-v10.3.0-x86_64-unknown-linux-gnu
+    echo "[fd] fd installed successfully."
+else
+    echo "[fd] fd is already installed."
 fi
 
 # Install tmux from source
