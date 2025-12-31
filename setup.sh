@@ -31,17 +31,17 @@ done
 # setup.sh - Setup script for a new development machine
 # Installs tools and configurations based on the dotfiles repository.
 
-echo "Starting setup..."
+echo "[setup] Starting setup..."
 
 # Check if running on a Debian/Ubuntu based system
 if [ -f /etc/debian_version ]; then
-    echo "Detected Debian/Ubuntu system."
+    echo "[system] Detected Debian/Ubuntu system."
     
     # Update package list
     sudo apt-get update
 
     # Install apt packages
-    echo "Installing system packages..."
+    echo "[system] Installing system packages..."
     sudo apt-get install -y \
         7zip \
         bat \
@@ -54,37 +54,52 @@ if [ -f /etc/debian_version ]; then
         git \
         iproute2 \
         jq \
+        libncurses5-dev libncursesw5-dev \
         make \
         python3 python3-pynvim python3-venv \
         ripgrep \
         rsync \
         stow \
         sudo \
-        ssh sshpass \
-        tmux \
+        ssh \
+        sshpass \
         unzip \
         uuid-runtime \
         zoxide
 else
-    echo "Warning: Not on Debian/Ubuntu. Skipping apt package installation."
-    echo "Please ensure you have the equivalent packages installed manually."
+    echo "[system] Warning: Not on Debian/Ubuntu. Skipping apt package installation."
+    echo "[system] Please ensure you have the equivalent packages installed manually."
+fi
+
+# Install tmux from source
+if ! command -v tmux &> /dev/null; then
+    echo "[tmux] Installing tmux (v3.6a) from source..."
+    TMUX_TEMP_DIR=$(mktemp -d)
+    cd "$TMUX_TEMP_DIR"
+    curl -L https://github.com/tmux/tmux/releases/download/3.6a/tmux-3.6a.tar.gz -o tmux-3.6a.tar.gz
+    tar xzf tmux-3.6a.tar.gz
+    cd tmux-3.6a
+    ./configure --prefix=/usr/local CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"
+    make
+    sudo make install
+    cd /
+    rm -rf "$TMUX_TEMP_DIR"
+    echo "[tmux] tmux installed successfully."
+else
+    echo "[tmux] tmux is already installed."
 fi
 
 # Install Node.js
 if ! command -v node &> /dev/null; then
-    echo "Installing Node.js (v24.4.0)..."
+    echo "[node] Installing Node.js (v24.4.0)..."
     curl -s https://nodejs.org/dist/v24.4.0/node-v24.4.0-linux-x64.tar.xz | sudo tar -xJ --strip-components=1 -C /usr/local
 else
-    echo "Node.js is already installed."
+    echo "[node] Node.js is already installed."
 fi
-
-# Install Global NPM Packages
-echo "Installing global NPM packages..."
-sudo npm install -g trzsz @anthropic-ai/claude-code @musistudio/claude-code-router
 
 # Install Yazi (File Manager)
 if ! command -v yazi &> /dev/null; then
-    echo "Installing Yazi..."
+    echo "[yazi] Installing Yazi..."
     TEMP_DIR=$(mktemp -d)
     curl -L https://github.com/sxyazi/yazi/releases/download/v25.5.31/yazi-x86_64-unknown-linux-musl.zip -o "$TEMP_DIR/yazi.zip"
     unzip "$TEMP_DIR/yazi.zip" -d "$TEMP_DIR"
@@ -92,68 +107,80 @@ if ! command -v yazi &> /dev/null; then
     sudo cp "$TEMP_DIR/yazi-x86_64-unknown-linux-musl/yazi" /usr/local/bin/
     rm -rf "$TEMP_DIR"
 else
-    echo "Yazi is already installed."
+    echo "[yazi] Yazi is already installed."
 fi
 
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
-    echo "Installing Neovim (v0.11.2)..."
-    curl -L https://github.com/neovim/neovim-releases/releases/download/v0.11.2/nvim-linux-x86_64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
+    echo "[neovim] Installing Neovim (v0.11.5)..."
+    curl -L https://github.com/neovim/neovim-releases/releases/download/v0.11.5/nvim-linux-x86_64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
 else
-    echo "Neovim is already installed."
+    echo "[neovim] Neovim is already installed."
 fi
 
 # Install uv and llm
 if ! command -v uv &> /dev/null; then
-    echo "Installing uv..."
+    echo "[uv] Installing uv..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
 fi
 
 if ! command -v llm &> /dev/null; then
-    echo "Installing llm tool..."
+    echo "[llm] Installing llm tool..."
     uv tool install llm
     llm install llm-openrouter
 fi
 
 # Install OpenCode
 if ! command -v opencode &> /dev/null; then
-    echo "Installing OpenCode..."
+    echo "[opencode] Installing OpenCode..."
     curl -fsSL https://opencode.ai/install | bash
 else
-    echo "OpenCode is already installed."
+    echo "[opencode] OpenCode is already installed."
 fi
 
 # Install Rust (rustup)
 if [[ "$INSTALL_RUST" == "true" ]]; then
     if ! command -v rustup &> /dev/null; then
-        echo "Installing Rust..."
+        echo "[rust] Installing Rust..."
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
-        echo "Rust installed."
+        echo "[rust] Rust installed."
     else
-        echo "Rust is already installed."
+        echo "[rust] Rust is already installed."
     fi
 else
-    echo "Skipping Rust installation (INSTALL_RUST not set to true)."
+    echo "[rust] Skipping Rust installation (INSTALL_RUST not set to true)."
 fi
 
 # Stow Dotfiles
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ -d "$SCRIPT_DIR/stow-dotfiles" ]; then
-    echo "Stowing dotfiles..."
+    echo "[stow] Stowing dotfiles..."
     cd "$SCRIPT_DIR/stow-dotfiles"
     stow -t "$HOME" -R *
     cd "$SCRIPT_DIR"
 else
-    echo "Error: stow-dotfiles directory not found in $SCRIPT_DIR"
+    echo "[stow] Error: stow-dotfiles directory not found in $SCRIPT_DIR"
+fi
+
+# Set LANG if not already set
+if [ -z "$LANG" ]; then
+    echo "[bash] Setting LANG=en_US.UTF-8 in $BASHRC..."
+    if ! grep -q "export LANG=en_US.UTF-8" "$BASHRC" 2>/dev/null; then
+        echo "export LANG=en_US.UTF-8" >> "$BASHRC"
+        echo "[bash] LANG set in $BASHRC."
+    else
+        echo "[bash] LANG already configured in $BASHRC."
+    fi
+    export LANG=en_US.UTF-8
 fi
 
 # Setup Fish Shell
-echo "Setting up Fish shell plugins..."
+echo "[fish] Setting up Fish shell plugins..."
 # Check if fish is in /etc/shells
 if ! grep -q "$(which fish)" /etc/shells; then
-    echo "Adding fish to /etc/shells..."
+    echo "[fish] Adding fish to /etc/shells..."
     which fish | sudo tee -a /etc/shells
 fi
 
@@ -161,7 +188,7 @@ fi
 fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
 
 # Configure .bashrc to start fish automatically (from README.md)
-echo "Configuring .bashrc to automatically start fish..."
+echo "[bash] Configuring .bashrc to automatically start fish..."
 BASHRC="$HOME/.bashrc"
 if [ -f "$BASHRC" ]; then
     # Check if we already added it to avoid duplicates
@@ -174,14 +201,14 @@ then
     exec fish $LOGIN_OPTION
 fi
 EOF
-        echo "Updated $BASHRC to launch fish."
+        echo "[bash] Updated $BASHRC to launch fish."
     else
-        echo "Fish launch logic already in $BASHRC."
+        echo "[bash] Fish launch logic already in $BASHRC."
     fi
 fi
 
 echo "==================================================="
-echo "Setup complete!"
-echo "Please restart your shell or log out and back in."
-echo "Fish has been configured to launch automatically from .bashrc."
+echo "[setup] Setup complete!"
+echo "[setup] Please restart your shell or log out and back in."
+echo "[setup] Fish has been configured to launch automatically from .bashrc."
 echo "==================================================="
