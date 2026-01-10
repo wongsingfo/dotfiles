@@ -55,6 +55,7 @@ require('lazy').setup {
 	require("plugins.git"),
 	require("plugins.llm"),
 	require("plugins.lsp"),
+	require("plugins.markdown"),
 	require("plugins.mini"),
 	require("plugins.opencode"),
 	require("plugins.osc52"),

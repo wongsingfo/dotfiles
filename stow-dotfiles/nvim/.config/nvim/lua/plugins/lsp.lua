@@ -102,10 +102,8 @@ end
 
 local function setup_lsp()
 	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
-	-- lspconfig.pyright.setup {}
-	-- lspconfig.tsserver.setup {}
-	-- lspconfig.bashls.setup {}()
 	vim.lsp.enable('gopls')
+	vim.lsp.enable('tinymist')
 	setup_texlab()
 	setup_pylsp()
 	setup_clangd()
