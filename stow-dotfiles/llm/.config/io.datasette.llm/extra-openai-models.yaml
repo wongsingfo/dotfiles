@@ -6,3 +6,10 @@
   model_name: deepseek-r1
   api_base: "https://api.lkeap.cloud.tencent.com/v1"
   api_key_name: tencent
+
+# 模型 id 列表
+# https://www.volcengine.com/docs/82379/1330310?lang=zh
+- model_id: volcengine/doubao
+  model_name: doubao-seed-1-8-251228
+  api_base: "https://ark.cn-beijing.volces.com/api/v3"
+  api_key_name: ark

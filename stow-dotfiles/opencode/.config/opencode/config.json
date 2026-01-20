@@ -1,9 +1,47 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-gemini-auth@latest"],
+  "provider": {
+    "myprovider": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "volcengine",
+      "options": {
+        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
+        "apiKey": "<ARK_API_KEY>"
+      },
+      "models": {
+        "ark-code-latest": {
+          "name": "ark-code-latest",
+          "options": {
+            "thinking": {
+              "type": "enabled"
+            }
+          }
+        }
+      }
+    }
+  },
+  "plugin": [
+    "opencode-gemini-auth@latest",
+    "@mohak34/opencode-notifier@latest"
+  ],
   "permission": {
     "edit": "allow",
-    "bash": "ask",
+    "bash": {
+      "*": "ask",
+      "grep *": "allow",
+      "echo *": "allow",
+      "curl *": "allow",
+      "ls *": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "sed *": "allow",
+      "find *": "allow",
+      "awk *": "allow",
+      "make *": "allow",
+      "python3 -m py_compile *": "allow",
+      "go build *": "allow"
+    },
     "webfetch": "allow",
     "doom_loop": "ask",
     "external_directory": "ask"
