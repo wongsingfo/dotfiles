@@ -86,4 +86,14 @@ if status is-interactive
 		set -lx NO_PROXY "localhost,127.0.0.1,::1"
 		$argv
 	end
+
+	if command -q llm
+		# On macOS the default config dir is ~/Library/Application Support/io.datasette.llm/.
+		# We set this env var to let it use LLM_USER_PATH
+		set -x LLM_USER_PATH $HOME/.config/io.datasette.llm
+	end
 end
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH

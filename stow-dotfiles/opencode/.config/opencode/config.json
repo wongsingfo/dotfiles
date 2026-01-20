@@ -1,16 +1,21 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "enabled_providers": ["volcengine"],
   "provider": {
-    "myprovider": {
+    "volcengine": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "volcengine",
       "options": {
         "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
-        "apiKey": "<ARK_API_KEY>"
+        "apiKey": "*********"
       },
       "models": {
         "ark-code-latest": {
           "name": "ark-code-latest",
+          "limit": {
+            "context": 256000,
+            "output": 256000
+          },
           "options": {
             "thinking": {
               "type": "enabled"
@@ -28,19 +33,32 @@
     "edit": "allow",
     "bash": {
       "*": "ask",
+
+      "pwd": "allow",
+      "touch *": "allow",
+      "mkdir *": "allow",
+      "rg *": "allow",
       "grep *": "allow",
+      "test *": "allow",
       "echo *": "allow",
       "curl *": "allow",
       "ls *": "allow",
       "cat *": "allow",
+      "sleep *": "allow",
       "head *": "allow",
       "tail *": "allow",
       "sed *": "allow",
       "find *": "allow",
+      "fd *": "allow",
       "awk *": "allow",
+      "which *": "allow",
+
       "make *": "allow",
       "python3 -m py_compile *": "allow",
-      "go build *": "allow"
+      "go build *": "allow",
+      "npm install *": "allow",
+      "npx *": "allow",
+      "npm run *": "allow"
     },
     "webfetch": "allow",
     "doom_loop": "ask",

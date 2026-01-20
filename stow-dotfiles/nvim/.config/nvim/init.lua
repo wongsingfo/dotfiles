@@ -56,13 +56,15 @@ vim.o.wildmenu = true
 vim.opt.list = true
 vim.opt.listchars = {
        trail = '•',
-       lead = '·',
-       tab = '▸ ',
+       -- lead = '·',
+       -- tab = '▸ ',
        extends = '»',
        precedes = '«',
        nbsp = '␣',
 }
-vim.o.showbreak = "⮩ "
+vim.o.showbreak = "↪ "
+
+vim.opt.mousescroll = "ver:3,hor:0"
 
 vim.keymap.set('n', '<leader>tm', function()
        local enabled = not vim.wo.spell
