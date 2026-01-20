@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "agents": {
+    "Sisyphus": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "librarian": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "explore": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "oracle": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "frontend-ui-ux-engineer": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "document-writer": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "multimodal-looker": {
+      "model": "volcengine/ark-code-latest"
+    }
+  }
+}

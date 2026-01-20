@@ -6,8 +6,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "volcengine",
       "options": {
-        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
-        "apiKey": "*********"
+        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3"
       },
       "models": {
         "ark-code-latest": {
@@ -27,7 +26,8 @@
   },
   "plugin": [
     "opencode-gemini-auth@latest",
-    "@mohak34/opencode-notifier@latest"
+    "@mohak34/opencode-notifier@latest",
+    "oh-my-opencode"
   ],
   "permission": {
     "edit": "allow",
