@@ -44,6 +44,7 @@
       "curl *": "allow",
       "ls *": "allow",
       "cat *": "allow",
+      "tee *": "allow",
       "sleep *": "allow",
       "head *": "allow",
       "tail *": "allow",

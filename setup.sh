@@ -36,7 +36,7 @@ echo "[setup] Starting setup..."
 # Check if running on a Debian/Ubuntu based system
 if [ -f /etc/debian_version ]; then
     echo "[system] Detected Debian/Ubuntu system."
-    
+
     # Update package list
     sudo apt-get update
 
@@ -196,6 +196,7 @@ else
 fi
 
 # Set LANG if not already set
+BASHRC="$HOME/.bashrc"
 if [ -z "$LANG" ]; then
     echo "[bash] Setting LANG=en_US.UTF-8 in $BASHRC..."
     if ! grep -q "export LANG=en_US.UTF-8" "$BASHRC" 2>/dev/null; then
@@ -216,7 +217,6 @@ fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/fun
 
 # Configure .bashrc to start fish automatically (from README.md)
 echo "[bash] Configuring .bashrc to automatically start fish..."
-BASHRC="$HOME/.bashrc"
 if [ -f "$BASHRC" ]; then
     # Check if we already added it to avoid duplicates
     if ! grep -q "exec fish" "$BASHRC"; then
