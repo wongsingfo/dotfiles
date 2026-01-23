@@ -1,11 +1,10 @@
 local vim = vim
 
 return {
-	"catppuccin/nvim",
-	name = "catppuccin",
+	"rebelot/kanagawa.nvim",
 	lazy = false,
 	priority = 1000,
 	config = function()
-		vim.cmd.colorscheme('catppuccin-macchiato')
+		vim.cmd.colorscheme('kanagawa-dragon')
 	end
 }

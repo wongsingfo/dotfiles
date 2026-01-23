@@ -178,7 +178,7 @@ end
 return {
 	{
 		"neovim/nvim-lspconfig",
-		cmd = "LspStart",
+		event = "VeryLazy",
 		config = function()
 			setup_lsp()
 			setup_keybinding()

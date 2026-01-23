@@ -53,11 +53,9 @@ require('lazy').setup {
 
 	require("plugins.colorscheme"),
 	require("plugins.git"),
-	require("plugins.llm"),
 	require("plugins.lsp"),
 	require("plugins.markdown"),
 	require("plugins.mini"),
-	require("plugins.opencode"),
 	require("plugins.osc52"),
 	require("plugins.symboltable"),
 	require("plugins.telescope"),
@@ -65,4 +63,6 @@ require('lazy').setup {
 	require("plugins.typst"),
 	require("plugins.whichkey"),
 	require("plugins.yazi"),
+	-- require("plugins.llm"),
+	-- require("plugins.opencode"),
 }
