@@ -1,5 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "formatter": {
+    "black": {
+      "command": ["black", "$FILE"],
+      "extensions": [".py", ".pyi"]
+    }
+  },
   "enabled_providers": ["volcengine"],
   "provider": {
     "volcengine": {
