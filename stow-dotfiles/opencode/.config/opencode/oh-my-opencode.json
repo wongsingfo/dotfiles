@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
   "agents": {
     "Sisyphus": {
-      "model": "volcengine/ark-code-latest"
+      "model": "coco-gemini/gemini-3-flash-preview"
     },
     "librarian": {
       "model": "volcengine/ark-code-latest"

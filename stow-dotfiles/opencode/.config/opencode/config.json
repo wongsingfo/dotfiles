@@ -6,8 +6,123 @@
       "extensions": [".py", ".pyi"]
     }
   },
-  "enabled_providers": ["volcengine"],
+  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt"],
   "provider": {
+    "coco-gemini": {
+      "npm": "@ai-sdk/google",
+      "name": "coco (Gemini family)",
+      "options": {
+        "baseURL": "http://localhost:9998/v1",
+        "apiKey": "secret"
+      },
+      "models": {
+        "gemini-3-flash-preview": {
+          "name": "Gemini Flash",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "gemini-3-pro-preview-new": {
+          "name": "Gemini Pro",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        }
+      }
+    },
+    "coco-gpt": {
+      "npm": "@ai-sdk/openai",
+      "name": "coco (GPT family)",
+      "options": {
+        "baseURL": "http://localhost:9998/v1",
+        "apiKey": "secret"
+      },
+      "models": {
+        "gpt-5": {
+          "name": "GPT-5",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 400000,
+            "output": 128000
+          }
+        },
+        "gpt-5.1": {
+          "name": "GPT-5.1",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 400000,
+            "output": 128000
+          }
+        },
+        "gpt-5.2": {
+          "name": "GPT-5.2",
+          "attachment": true,
+          "reasoning": true,
+          "tool_call": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 400000,
+            "output": 128000
+          }
+        }
+      }
+    },
     "volcengine": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "volcengine",
@@ -16,7 +131,7 @@
       },
       "models": {
         "ark-code-latest": {
-          "name": "ark-code-latest",
+          "name": "Ark-Code",
           "limit": {
             "context": 256000,
             "output": 256000
@@ -27,6 +142,26 @@
             }
           }
         }
+      }
+    },
+    "google": {
+      "models": {
+       "gemini-3-flash-preview": {
+         "options": {
+           "thinkingConfig": {
+             "thinkingLevel": "high",
+             "includeThoughts": true
+           }
+         }
+       },
+       "gemini-3-pro-preview": {
+         "options": {
+           "thinkingConfig": {
+             "thinkingLevel": "high",
+             "includeThoughts": true
+           }
+         }
+       }
       }
     }
   },
