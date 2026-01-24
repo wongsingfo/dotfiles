@@ -10,3 +10,11 @@
 
 [credential]
 	helper = store
+[diff]
+	tool = nvim
+[difftool "nvim"]
+	cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
+[merge]
+	tool = nvim
+[mergetool "nvim"]
+	cmd = nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c \"wincmd J\"

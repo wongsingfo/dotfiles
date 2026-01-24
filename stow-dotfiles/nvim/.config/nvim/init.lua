@@ -31,7 +31,7 @@ vim.o.wrap = false
 vim.o.signcolumn = "number"
 
 -- vim.o.splitbelow = true
--- vim.o.splitright = true
+vim.o.splitright = true
 
 vim.o.ignorecase = true
 vim.o.smartcase = true

@@ -48,6 +48,7 @@ return {
 		vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Telescope grep word' })
 		vim.keymap.set('n', '<leader>fh', builtin.git_status, { desc = 'Telescope git status' })
 		vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
+		vim.keymap.set('n', '<leader>fx', builtin.command_history, { desc = 'Telescope command' })
 		vim.keymap.set('n', '<leader>ff', builtin.resume, { desc = 'Telescope resume' })
 
 		-- vim.keymap.set('n', '<leader>fo', builtin.oldfiles, { desc = 'Telescope recent files' })
