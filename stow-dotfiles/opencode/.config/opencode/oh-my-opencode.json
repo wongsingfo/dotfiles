@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
   "agents": {
-    "Sisyphus": {
-      "model": "coco-gemini/gemini-3-flash-preview"
+    "sisyphus": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
     },
     "librarian": {
       "model": "volcengine/ark-code-latest"
@@ -11,16 +11,19 @@
       "model": "volcengine/ark-code-latest"
     },
     "oracle": {
-      "model": "volcengine/ark-code-latest"
-    },
-    "frontend-ui-ux-engineer": {
-      "model": "volcengine/ark-code-latest"
-    },
-    "document-writer": {
-      "model": "volcengine/ark-code-latest"
+      "model": "coco-gpt/gpt-5.2"
     },
     "multimodal-looker": {
-      "model": "volcengine/ark-code-latest"
+      "model": "coco-gemini/gemini-3-flash-preview"
+    },
+    "metis": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "momus": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "atlas": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
     }
   }
 }

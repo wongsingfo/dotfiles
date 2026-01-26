@@ -41,12 +41,17 @@ return {
 		keymap('n', '<leader>hS', gs.stage_buffer, keymapOptions("Stage Buffer"))
 		keymap('n', '<leader>hu', gs.undo_stage_hunk, keymapOptions("Undo Stage Hunk"))
 		keymap('n', '<leader>hR', gs.reset_buffer, keymapOptions("Reset Buffer"))
+
 		keymap('n', '<leader>hp', gs.preview_hunk, keymapOptions("Preview Hunk"))
-		keymap('n', '<leader>hP', gs.toggle_deleted, keymapOptions("Toggle Deleted"))
+		keymap('n', '<leader>hP', function()
+			gs.toggle_deleted()
+			gs.toggle_word_diff()
+		end, keymapOptions("Toggle Deleted"))
+
 		keymap('n', '<leader>hb', function() gs.blame_line { full = true } end, keymapOptions("Blame Line"))
 		keymap('n', '<leader>hB', gs.toggle_current_line_blame, keymapOptions("Toggle Blame"))
 		keymap('n', '<leader>hd', gs.diffthis, keymapOptions("Diff This"))
 		keymap('n', '<leader>hD', function() gs.diffthis('HEAD') end, keymapOptions("Diff HEAD~"))
-		keymap({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+		-- keymap({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
 	end
 }

@@ -24,6 +24,7 @@ vim.o.encoding = "UTF-8"
 -- vim.o.cursorline = true
 vim.o.wrap = false
 
+vim.o.scrollback = 100000
 -- vim.o.scrolloff = 4
 -- vim.o.sidescrolloff = 4
 -- vim.o.signcolumn = 'yes'

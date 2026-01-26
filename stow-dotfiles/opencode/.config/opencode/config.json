@@ -175,7 +175,11 @@
     "bash": {
       "*": "ask",
 
+      "workspace/run.sh *": "allow",
+
       "pwd": "allow",
+      "sort": "allow",
+
       "touch *": "allow",
       "mkdir *": "allow",
       "rg *": "allow",
@@ -191,9 +195,16 @@
       "tail *": "allow",
       "sed *": "allow",
       "find *": "allow",
+      "xargs find *": "allow",
       "fd *": "allow",
       "awk *": "allow",
       "which *": "allow",
+      "sort *": "allow",
+
+      "git diff *": "allow",
+      "git blame *": "allow",
+      "git status *": "allow",
+      "git show *": "allow",
 
       "make *": "allow",
       "python3 -m py_compile *": "allow",
