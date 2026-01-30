@@ -1,7 +1,7 @@
 local function setup_folding()
 	vim.o.foldmethod = "expr"
 	vim.o.foldexpr = "nvim_treesitter#foldexpr()"
-	vim.o.foldnestmax = 3
+	vim.o.foldnestmax = 5
 	vim.o.foldenable = false -- Disable folding at startup
 end
 
