@@ -16,6 +16,7 @@ local function setup_rust_analyzer()
 end
 
 local function setup_lua_ls()
+	vim.lsp.enable('lua_ls')
 	vim.lsp.config('lua_ls', {
 		on_init = function(client)
 			if client.workspace_folders then
@@ -67,6 +68,7 @@ local function setup_lua_ls()
 end
 
 local function setup_pylsp()
+	vim.lsp.enable('pylsp')
 	vim.lsp.config('pylsp', {
 		settings = {
 			pylsp = {
@@ -82,6 +84,7 @@ local function setup_pylsp()
 end
 
 local function setup_texlab()
+	vim.lsp.enable('texlab')
 	vim.lsp.config.texlab = {
 		settings = {
 			texlab = {
@@ -104,24 +107,28 @@ local function setup_lsp()
 	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
 	vim.lsp.enable('gopls')
 	vim.lsp.enable('tinymist')
+	setup_lua_ls()
 	setup_texlab()
 	setup_pylsp()
 	setup_clangd()
 	setup_rust_analyzer()
-	setup_lua_ls()
 
 	-- Native LSP completion (Neovim 0.11+)
-	if vim.lsp.completion then
-		vim.opt.completeopt = { "menu", "menuone", "noselect" }
-		vim.api.nvim_create_autocmd("LspAttach", {
-			callback = function(args)
-				local client = vim.lsp.get_client_by_id(args.data.client_id)
-				if client and client.supports_method("textDocument/completion") then
-					vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-				end
-			end,
-		})
+	if not vim.lsp.completion then
+		-- notify the user
+		return
 	end
+
+	vim.api.nvim_create_autocmd("LspAttach", {
+		group = vim.api.nvim_create_augroup('NativeLspCompletion', { clear = true }),
+		callback = function(args)
+			local client = vim.lsp.get_client_by_id(args.data.client_id)
+			if not client or not vim.lsp.completion or not client:supports_method('textDocument/completion') then
+				return
+			end
+			vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+		end,
+	})
 end
 
 local function setup_keybinding()
@@ -163,26 +170,13 @@ local function setup_keybinding()
 	keymap("n", "<leader>gh", "<cmd>ClangdSwitchSourceHeader<CR>")
 end
 
-local function setup_win_border()
-	-- https://github.com/neovim/nvim-lspconfig/wiki/UI-Customization
-	-- To instead override globally
-	local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
-	---@diagnostic disable-next-line: duplicate-set-field
-	function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
-		opts = opts or {}
-		opts.border = opts.border or "rounded"
-		return orig_util_open_floating_preview(contents, syntax, opts, ...)
-	end
-end
-
 return {
 	{
 		"neovim/nvim-lspconfig",
-		event = "VeryLazy",
+		event = { "BufReadPre", "BufNewFile" },
 		config = function()
 			setup_lsp()
 			setup_keybinding()
-			setup_win_border()
 		end,
 
 		dependencies = {
