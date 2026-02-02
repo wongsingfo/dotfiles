@@ -1,0 +1,37 @@
+// https://github.com/code-yeongyu/oh-my-opencode/blob/dev/docs/configurations.md
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "agents": {
+    "sisyphus": {
+      "model": "google/gemini-2.5-pro"
+    },
+    "librarian": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "explore": {
+      "model": "volcengine/ark-code-latest"
+    },
+    "oracle": {
+      "model": "google/gemini-2.5-pro"
+    },
+    "multimodal-looker": {
+      "model": "google/gemini-2.5-pro"
+    },
+    // Catch ambiguities before they become bugs
+    "metis": {
+      "model": "google/gemini-2.5-pro"
+    },
+    // Verify plans are complete before execution
+    "momus": {
+      "model": "google/gemini-2.5-pro"
+    },
+    // Make the plan
+    "prometheus":{
+      "model": "google/gemini-2.5-pro"
+    },
+    // Execute the plan made by prometheus
+    "atlas": {
+      "model": "google/gemini-2.5-pro"
+    }
+  }
+}
