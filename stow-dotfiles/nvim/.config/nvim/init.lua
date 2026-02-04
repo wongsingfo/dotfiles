@@ -67,7 +67,7 @@ vim.o.showbreak = "↪ "
 
 vim.opt.mousescroll = "ver:3,hor:0"
 
-vim.opt.completeopt = { "menu", "menuone", "noinsert", "fuzzy", "popup" }
+vim.opt.completeopt = { "menu", "menuone", "noselect", "fuzzy", "popup" }
 
 vim.keymap.set('n', '<leader>tm', function()
        local enabled = not vim.wo.spell

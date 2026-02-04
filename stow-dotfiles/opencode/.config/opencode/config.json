@@ -180,6 +180,7 @@
       "pwd": "allow",
       "sort": "allow",
 
+      "date *": "allow",
       "touch *": "allow",
       "mkdir *": "allow",
       "rg *": "allow",
@@ -201,6 +202,9 @@
       "which *": "allow",
       "sort *": "allow",
 
+      "git log *": "allow",
+      "git add *": "allow",
+      "git commit *": "allow",
       "git diff *": "allow",
       "git blame *": "allow",
       "git status *": "allow",

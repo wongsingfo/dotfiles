@@ -4,6 +4,18 @@
     "sisyphus": {
       "model": "coco-gemini/gemini-3-pro-preview-new"
     },
+    "OpenCode-Builder": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "sisyphus-junior": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "plan": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "build": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
     "librarian": {
       "model": "volcengine/ark-code-latest"
     },
@@ -20,6 +32,9 @@
       "model": "coco-gemini/gemini-3-pro-preview-new"
     },
     "momus": {
+      "model": "coco-gemini/gemini-3-pro-preview-new"
+    },
+    "prometheus": {
       "model": "coco-gemini/gemini-3-pro-preview-new"
     },
     "atlas": {

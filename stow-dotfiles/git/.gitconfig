@@ -17,4 +17,4 @@
 [merge]
 	tool = nvim
 [mergetool "nvim"]
-	cmd = nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c \"wincmd J\"
+	cmd = nvim -d \"$MERGED\" \"$LOCAL\" \"$REMOTE\" -c \"wincmd J\"

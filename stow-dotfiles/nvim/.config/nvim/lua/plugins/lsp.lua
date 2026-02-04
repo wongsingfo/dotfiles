@@ -114,7 +114,7 @@ local function setup_lsp()
 			if not client or not vim.lsp.completion or not client:supports_method('textDocument/completion') then
 				return
 			end
-			vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+			vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = false })
 		end,
 	})
 end
