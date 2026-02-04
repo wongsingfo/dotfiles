@@ -6,7 +6,8 @@
       "extensions": [".py", ".pyi"]
     }
   },
-  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt"],
+  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
+  // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
     "coco-gemini": {
       "npm": "@ai-sdk/google",
@@ -166,8 +167,11 @@
     }
   },
   "plugin": [
+    "opencode-openai-codex-auth@latest",
     "opencode-gemini-auth@latest",
-    "@mohak34/opencode-notifier@latest",
+    // Both oh-my-opencode and opencode-notifier listen to session.idle events.
+    // Running both simultaneously can cause crashes on Windows.
+    // "@mohak34/opencode-notifier@latest",
     "oh-my-opencode"
   ],
   "permission": {
@@ -187,6 +191,7 @@
       "grep *": "allow",
       "test *": "allow",
       "echo *": "allow",
+      "printf *": "allow",
       "curl *": "allow",
       "ls *": "allow",
       "cat *": "allow",
@@ -206,12 +211,14 @@
       "git add *": "allow",
       "git commit *": "allow",
       "git diff *": "allow",
+      "git log *": "allow",
       "git blame *": "allow",
       "git status *": "allow",
       "git show *": "allow",
 
       "make *": "allow",
       "python3 -m py_compile *": "allow",
+      "pytest *": "allow",
       "go build *": "allow",
       "npm install *": "allow",
       "npx *": "allow",
