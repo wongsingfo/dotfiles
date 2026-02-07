@@ -15,7 +15,7 @@ local function setup_rust_analyzer()
 	}
 end
 
-local lua_ls_config = {
+local lua_ls_config  = {
 	on_init = function(client)
 		if client.workspace_folders then
 			local path = client.workspace_folders[1].name
@@ -64,25 +64,22 @@ local lua_ls_config = {
 	}
 }
 
-local function setup_texlab()
-	vim.lsp.enable('texlab')
-	vim.lsp.config.texlab = {
-		settings = {
-			texlab = {
-				build = {
-					executable = 'latexmk',
-					args = { '-pdf', '-interaction=nonstopmode', '-synctex=1', '%f' },
-					onSave = false,
-					forwardSearchAfter = true,
-				},
-				forwardSearch = {
-					executable = "zathura",
-					args = { "--synctex-forward", "%l:1:%f", "%p" }
-				}
+local texlab_config = {
+	settings = {
+		texlab = {
+			build = {
+				executable = 'latexmk',
+				args = { '-pdf', '-interaction=nonstopmode', '-synctex=1', '%f' },
+				onSave = false,
+				forwardSearchAfter = true,
+			},
+			forwardSearch = {
+				executable = "zathura",
+				args = { "--synctex-forward", "%l:1:%f", "%p" }
 			}
 		}
 	}
-end
+}
 
 local function setup_lsp()
 	-- Native LSP completion (Neovim 0.11+)
@@ -100,6 +97,7 @@ local function setup_lsp()
 		ruff = {},
 		marksman = {},
 		lua_ls = lua_ls_config,
+		texlab = texlab_config,
 	}
 
 	for name, config in pairs(servers) do
