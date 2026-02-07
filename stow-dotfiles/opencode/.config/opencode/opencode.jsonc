@@ -1,9 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "formatter": {
-    "black": {
-      "command": ["black", "$FILE"],
+    "ruff": {
+      "command": ["ruff", "format", "$FILE"],
       "extensions": [".py", ".pyi"]
+    },
+    "uv": {
+      "disabled": true
     }
   },
   "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
@@ -171,8 +174,8 @@
     "opencode-gemini-auth@latest",
     // Both oh-my-opencode and opencode-notifier listen to session.idle events.
     // Running both simultaneously can cause crashes on Windows.
-    // "@mohak34/opencode-notifier@latest",
-    "oh-my-opencode"
+    "@mohak34/opencode-notifier@latest"
+    // "oh-my-opencode"
   ],
   "permission": {
     "edit": "allow",
