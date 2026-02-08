@@ -166,6 +166,10 @@
            }
          }
        }
+      },
+      // https://github.com/jenslys/opencode-gemini-auth/issues/38
+      "options": {
+        "projectId": "gen-lang-client-0101595700"
       }
     }
   },
