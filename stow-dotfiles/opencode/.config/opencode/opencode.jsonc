@@ -186,7 +186,14 @@
   ],
 
   "permission": {
+    "external_directory": "ask",
+    "doom_loop": "ask",
     "edit": "allow",
+
+    // WARN: be aware of the web security
+    "webfetch": "allow",
+    "websearch": "allow",
+
     "bash": {
       "*": "ask",
 
@@ -194,6 +201,7 @@
       "sort": "allow",
       "tree": "allow",
 
+      "mv *": "allow",
       "cp *": "allow",
       "wc *": "allow",
       "date *": "allow",
@@ -201,6 +209,8 @@
       "mkdir *": "allow",
       "rg *": "allow",
       "grep *": "allow",
+      "pcregrep *": "allow",
+      "read *": "allow",
       "test *": "allow",
       "echo *": "allow",
       "printf *": "allow",
@@ -231,25 +241,20 @@
       "workspace/run.sh *": "allow",
       "latexmk *": "allow",
       "make *": "allow",
+      "uv *": "allow",
       "python3 -m py_compile *": "allow",
       "pytest *": "allow",
       "go build *": "allow",
       "npm install *": "allow",
       "npx *": "allow",
       "npm run *": "allow"
-    },
-
-    // WARN: be aware of the web security
-    "webfetch": "allow",
-    "websearch": "allow",
-
-    "doom_loop": "ask",
-    "external_directory": "ask"
+    }
   },
 
   "mcp": {
     "exa": {
       "type": "remote",
+      // need to set the env var: EXA_API_KEY
       "url": "https://mcp.exa.ai/mcp",
       "enabled": true
     },
