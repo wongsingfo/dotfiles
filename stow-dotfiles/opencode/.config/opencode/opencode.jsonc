@@ -9,7 +9,9 @@
       "disabled": true
     }
   },
-  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
+
+  // "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
+
   // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
     "coco-gemini": {
@@ -173,6 +175,7 @@
       }
     }
   },
+
   "plugin": [
     "opencode-openai-codex-auth@latest",
     "opencode-gemini-auth@latest",
@@ -181,16 +184,18 @@
     "@mohak34/opencode-notifier@latest"
     // "oh-my-opencode"
   ],
+
   "permission": {
     "edit": "allow",
     "bash": {
       "*": "ask",
 
-      "workspace/run.sh *": "allow",
-
       "pwd": "allow",
       "sort": "allow",
+      "tree": "allow",
 
+      "cp *": "allow",
+      "wc *": "allow",
       "date *": "allow",
       "touch *": "allow",
       "mkdir *": "allow",
@@ -223,6 +228,8 @@
       "git status *": "allow",
       "git show *": "allow",
 
+      "workspace/run.sh *": "allow",
+      "latexmk *": "allow",
       "make *": "allow",
       "python3 -m py_compile *": "allow",
       "pytest *": "allow",
@@ -231,8 +238,33 @@
       "npx *": "allow",
       "npm run *": "allow"
     },
+
+    // WARN: be aware of the web security
     "webfetch": "allow",
+    "websearch": "allow",
+
     "doom_loop": "ask",
     "external_directory": "ask"
+  },
+
+  "mcp": {
+    "exa": {
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp",
+      "enabled": true
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--proxy-server=http://localhost:7890"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      },
+      "enabled": false
+    }
   }
 }

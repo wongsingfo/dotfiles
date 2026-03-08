@@ -11,14 +11,14 @@ else if command -q vim
 end
 
 function update_path
-	# Add .local/bin
 	if not string match -q -r "$HOME/.local/bin" $PATH
 		set -x PATH $HOME/.local/bin $PATH
 	end
-	# Check if $HOME/.cargo/bin is in $PATH
 	if not string match -q -r "$HOME/.cargo/bin" $PATH
-		# If it's not in $PATH, add it
 		set -x PATH $HOME/.cargo/bin $PATH
+	end
+	if not string match -q -r "$HOME/.npm/bin" $PATH
+		set -x PATH $HOME/.npm/bin $PATH
 	end
 	if not string match -q -r "/usr/local/texlive/2024/bin/x86_64-linux" $PATH
 		if test -d /usr/local/texlive/2024/bin/x86_64-linux
