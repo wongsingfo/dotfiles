@@ -14,6 +14,38 @@
 
   // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
+    // https://www.packyapi.com/console
+    "packyapi-claude": {
+      "name": "packyapi-claude",
+      "npm": "@ai-sdk/anthropic",
+      "options": {
+        "baseURL": "https://api-slb.packyapi.com/v1",
+        "apiKey": "{env:PACKYAPI_CLAUDE_API_KEY}"
+      },
+      "models": {
+        "claude-sonnet-4-6": {
+          "name": "claude-sonnet-4-6",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 1000000, "output": 64000 }
+        }
+      }
+    },
+    "packyapi-codex": {
+      "name": "packyapi-codex",
+      "npm": "@ai-sdk/openai",
+      "options": {
+        // "baseURL": "https://www.packyapi.com/v1",
+        "baseURL": "https://api-slb.packyapi.com/v1",
+        "apiKey": "{env:PACKYAPI_CODEX_API_KEY}"
+      },
+      "models": {
+        "gpt-5.3-codex": {
+          "name": "gpt-5.3-codex",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 }
+        }
+      }
+    },
     "coco-gemini": {
       "npm": "@ai-sdk/google",
       "name": "coco (Gemini family)",
@@ -22,43 +54,10 @@
         "apiKey": "secret"
       },
       "models": {
-        "gemini-3-flash-preview": {
-          "name": "Gemini Flash",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          }
-        },
         "gemini-3-pro-preview-new": {
           "name": "Gemini Pro",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          }
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 1048576, "output": 65536 }
         }
       }
     },
@@ -70,62 +69,10 @@
         "apiKey": "secret"
       },
       "models": {
-        "gpt-5": {
-          "name": "GPT-5",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
-        },
-        "gpt-5.1": {
-          "name": "GPT-5.1",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
-        },
         "gpt-5.2": {
           "name": "GPT-5.2",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 }
         }
       }
     },
@@ -133,42 +80,18 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "volcengine",
       "options": {
-        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3"
+        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
+        "apiKey": "{env:ARK_API_KEY}"
       },
       "models": {
         "ark-code-latest": {
           "name": "Ark-Code",
-          "limit": {
-            "context": 256000,
-            "output": 256000
-          },
-          "options": {
-            "thinking": {
-              "type": "enabled"
-            }
-          }
+          "limit": { "context": 256000, "output": 256000 },
+          "options": { "thinking": { "type": "enabled" } }
         }
       }
     },
     "google": {
-      "models": {
-       "gemini-3-flash-preview": {
-         "options": {
-           "thinkingConfig": {
-             "thinkingLevel": "high",
-             "includeThoughts": true
-           }
-         }
-       },
-       "gemini-3-pro-preview": {
-         "options": {
-           "thinkingConfig": {
-             "thinkingLevel": "high",
-             "includeThoughts": true
-           }
-         }
-       }
-      },
       // https://github.com/jenslys/opencode-gemini-auth/issues/38
       "options": {
         "projectId": "gen-lang-client-0101595700"
@@ -197,10 +120,8 @@
     "bash": {
       "*": "ask",
 
-      "pwd": "allow",
-      "sort": "allow",
-      "tree": "allow",
-
+      "pwd *": "allow",
+      "sort *": "allow",
       "mv *": "allow",
       "cp *": "allow",
       "wc *": "allow",
@@ -211,6 +132,7 @@
       "grep *": "allow",
       "pcregrep *": "allow",
       "read *": "allow",
+      "tree *": "allow",
       "test *": "allow",
       "echo *": "allow",
       "printf *": "allow",
@@ -242,7 +164,8 @@
       "latexmk *": "allow",
       "make *": "allow",
       "uv *": "allow",
-      "python3 -m py_compile *": "allow",
+      "python *": "allow",
+      "python3 *": "allow",
       "pytest *": "allow",
       "go build *": "allow",
       "npm install *": "allow",
@@ -254,8 +177,7 @@
   "mcp": {
     "exa": {
       "type": "remote",
-      // need to set the env var: EXA_API_KEY
-      "url": "https://mcp.exa.ai/mcp",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey={env:EXA_API_KEY}",
       "enabled": true
     },
     "chrome-devtools": {

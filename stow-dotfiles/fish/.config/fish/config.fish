@@ -1,21 +1,21 @@
 function load_env
 	set -l env_file (dirname (status --current-filename))/.env
 	if test -f $env_file
-	    while read -l line
-		# Skip comments and empty lines
-		if string match -q -r '^\s*#' $line; or string match -q -r '^\s*$' $line
-		    continue
-		end
-		# Split by the first '='
-		set -l kv (string split -m 1 "=" $line)
-		if test (count $kv) -eq 2
-		    set -l key (string trim $kv[1])
-		    set -l value (string trim $kv[2])
-		    # Remove surrounding quotes (one pair only)
-		    set value (string replace -r '^["\'](.*)["\']$' '$1' $value)
-		    set -gx $key "$value"
-		end
-	    end < $env_file
+		while read -l line
+			# Skip comments and empty lines
+			if string match -q -r '^\s*#' $line; or string match -q -r '^\s*$' $line
+				continue
+			end
+			# Split by the first '='
+			set -l kv (string split -m 1 "=" $line)
+			if test (count $kv) -eq 2
+				set -l key (string trim $kv[1])
+				set -l value (string trim $kv[2])
+				# Remove surrounding quotes (one pair only)
+				set value (string replace -r '^["\'](.*)["\']$' '$1' $value)
+				set -gx $key "$value"
+			end
+		end < $env_file
 	end
 end
 load_env
