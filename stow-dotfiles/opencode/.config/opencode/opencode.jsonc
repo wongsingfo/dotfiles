@@ -14,6 +14,23 @@
 
   // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
+    // https://codex-for.me/dashboard.html
+    "codex-for-me": {
+      "name": "codex-for-me",
+      "npm": "@ai-sdk/anthropic",
+      "options": {
+        "baseURL": "https://api-vip.codex-for.me/v1",
+        "apiKey": "{env:CODEX_ME_API_KEY}"
+      },
+      "models": {
+        "gpt-5.3-codex": {
+          "name": "gpt-5.3-codex",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 },
+          "variants": { "xhigh": { "reasoningEffort": "xhigh" }}
+        }
+      }
+    },
     // https://www.packyapi.com/console
     "packyapi-claude": {
       "name": "packyapi-claude",
@@ -150,27 +167,18 @@
       "awk *": "allow",
       "which *": "allow",
       "sort *": "allow",
+      "file *": "allow",
+      "gunzip *": "allow",
+      "jq *": "allow",
 
-      "git log *": "allow",
-      "git add *": "allow",
-      "git commit *": "allow",
-      "git diff *": "allow",
-      "git log *": "allow",
-      "git blame *": "allow",
-      "git status *": "allow",
-      "git show *": "allow",
-
+      "git *": "allow",
       "workspace/run.sh *": "allow",
       "latexmk *": "allow",
       "make *": "allow",
       "uv *": "allow",
-      "python *": "allow",
-      "python3 *": "allow",
-      "pytest *": "allow",
-      "go build *": "allow",
-      "npm install *": "allow",
-      "npx *": "allow",
-      "npm run *": "allow"
+      "go *": "allow",
+      "npm *": "allow",
+      "npx *": "allow"
     }
   },
 
