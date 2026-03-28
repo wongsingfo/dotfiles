@@ -23,6 +23,41 @@ function _yolo_print_cmd --description "Pretty-print a command with one flag per
     echo "  $line" >&2
 end
 
+function _yolo_bind --description "Add bind if path exists and not already seen"
+    # argv[1] = seen-list var name, argv[2] = bwrap-args var name
+    # argv[3] = --ro-bind or --bind, argv[4..] = paths
+    set -l seen_var $argv[1]
+    set -l args_var $argv[2]
+    set -l bind_type $argv[3]
+    for p in $argv[4..-1]
+        if test -e $p; and not contains -- $p $$seen_var
+            set -a $seen_var $p
+            set -a $args_var $bind_type $p $p
+        end
+    end
+end
+
+function _yolo_mount_resolv --description "Mount DNS resolver runtime dirs"
+    # argv[1] = bwrap-args var name, argv[2] = ro-seen var name
+    set -l args_var $argv[1]
+    set -l seen_var $argv[2]
+    test -e /etc/resolv.conf; or return
+    set -l resolv_source (readlink -f -- /etc/resolv.conf)
+    test -n "$resolv_source"; and string match -q '/run/*' $resolv_source; or return
+
+    set -l runtime_dir (dirname -- $resolv_source)
+    set -l current /run
+    set -a $args_var --dir $current
+    for component in (string split '/' (string replace '/run/' '' $runtime_dir))
+        set current $current/$component
+        set -a $args_var --dir $current
+    end
+    if test -e $runtime_dir; and not contains -- $runtime_dir $$seen_var
+        set -a $seen_var $runtime_dir
+        set -a $args_var --ro-bind $runtime_dir $runtime_dir
+    end
+end
+
 function yolo --description "Run a command in a bwrap sandbox"
     if not command -q bwrap
         echo "bwrap is not installed or not on PATH" >&2
@@ -59,8 +94,7 @@ function yolo --description "Run a command in a bwrap sandbox"
 
     set -l real_path (readlink -f -- $original_path)
     set -l tool_name (basename -- $original_path)
-    set -l xdg_config_home (set -q XDG_CONFIG_HOME; and echo $XDG_CONFIG_HOME; or echo $HOME/.config)
-    set -l xdg_cache_home (set -q XDG_CACHE_HOME; and echo $XDG_CACHE_HOME; or echo $HOME/.cache)
+    set -l sys_prefixes /usr /bin /lib /lib64 /etc
 
     set -l bwrap_args \
         --clearenv \
@@ -72,109 +106,71 @@ function yolo --description "Run a command in a bwrap sandbox"
         --die-with-parent
 
     set -l ro_seen
-    set -l rw_seen
-    set -l dir_seen
 
     # System mounts (ro)
-    for p in /usr /bin /lib /lib64 /etc
-        if test -e $p; and not contains -- $p $ro_seen
-            set -a ro_seen $p
-            set -a bwrap_args --ro-bind $p $p
-        end
-    end
+    _yolo_bind ro_seen bwrap_args --ro-bind $sys_prefixes
 
     # DNS resolver runtime mounts
-    if test -e /etc/resolv.conf
-        set -l resolv_source (readlink -f -- /etc/resolv.conf)
-        if test -n "$resolv_source"; and string match -q '/run/*' $resolv_source
-            set -l runtime_dir (dirname -- $resolv_source)
-            set -l current /run
-            if not contains -- $current $dir_seen
-                set -a dir_seen $current
-                set -a bwrap_args --dir $current
-            end
-            set -l relative (string replace '/run/' '' $runtime_dir)
-            for component in (string split '/' $relative)
-                set current $current/$component
-                if not contains -- $current $dir_seen
-                    set -a dir_seen $current
-                    set -a bwrap_args --dir $current
-                end
-            end
-            if test -e $runtime_dir; and not contains -- $runtime_dir $ro_seen
-                set -a ro_seen $runtime_dir
-                set -a bwrap_args --ro-bind $runtime_dir $runtime_dir
-            end
-        end
-    end
+    _yolo_mount_resolv bwrap_args ro_seen
 
     # Mount command paths (ro)
+    set -l home_prefixes $HOME/.npm $HOME/.cargo $HOME/.local
     for candidate in $original_path $real_path
-        set -l matched_prefix false
-        for prefix in $HOME/.npm $HOME/.cargo $HOME/.local
-            if test -e $prefix; and string match -q "$prefix/*" $candidate
-                if not contains -- $prefix $ro_seen
-                    set -a ro_seen $prefix
-                    set -a bwrap_args --ro-bind $prefix $prefix
-                end
-                set matched_prefix true
+        # Skip if under a system prefix (already mounted)
+        set -l skip false
+        for prefix in $sys_prefixes
+            if test $candidate = $prefix; or string match -q "$prefix/*" $candidate
+                set skip true
                 break
             end
         end
-        if test $matched_prefix = true
+        test $skip = true; and continue
+
+        # Skip if under workdir (will be rw-mounted)
+        if test $candidate = $workdir; or string match -q "$workdir/*" $candidate
             continue
         end
-        set -l is_system false
-        for sys_prefix in /usr /bin /lib /lib64 /etc
-            if test $candidate = $sys_prefix; or string match -q "$sys_prefix/*" $candidate
-                set is_system true
+
+        # Try known home prefixes first, else mount parent dir
+        set -l matched false
+        for prefix in $home_prefixes
+            if test -e $prefix; and string match -q "$prefix/*" $candidate
+                _yolo_bind ro_seen bwrap_args --ro-bind $prefix
+                set matched true
                 break
             end
         end
-        if test $is_system = false
-            if not string match -q "$workdir" $candidate; and not string match -q "$workdir/*" $candidate
-                set -l parent (dirname -- $candidate)
-                if test -e $parent; and not contains -- $parent $ro_seen
-                    set -a ro_seen $parent
-                    set -a bwrap_args --ro-bind $parent $parent
-                end
-            end
+        if test $matched = false
+            set -l parent (dirname -- $candidate)
+            _yolo_bind ro_seen bwrap_args --ro-bind $parent
         end
     end
 
     # Working directory (rw)
-    if test -e $workdir; and not contains -- $workdir $rw_seen
-        set -a rw_seen $workdir
+    if test -e $workdir
         set -a bwrap_args --bind $workdir $workdir
     end
 
     # Cache dir (rw)
-    if test -e $xdg_cache_home; and not contains -- $xdg_cache_home $rw_seen
-        set -a rw_seen $xdg_cache_home
-        set -a bwrap_args --bind $xdg_cache_home $xdg_cache_home
+    if test -e $HOME/.cache
+        set -a bwrap_args --bind $HOME/.cache $HOME/.cache
     end
 
     # Git state (ro)
-    for p in $HOME/.gitconfig $HOME/.git-credentials $xdg_config_home/git $HOME/.ssh
-        if test -e $p; and not contains -- $p $ro_seen
-            set -a ro_seen $p
-            set -a bwrap_args --ro-bind $p $p
-        end
-    end
+    _yolo_bind ro_seen bwrap_args --ro-bind \
+        $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
 
     # Tool-specific state (rw)
     switch $tool_name
         case claude
             for p in $HOME/.claude $HOME/.claude.json
-                if test -e $p; and not contains -- $p $rw_seen
-                    set -a rw_seen $p
+                if test -e $p
                     set -a bwrap_args --bind $p $p
                 end
             end
         case codex
-            for p in $HOME/.codex $xdg_config_home/codex
-                if test -e $p; and not contains -- $p $rw_seen
-                    set -a rw_seen $p
+            for p in $HOME/.codex $HOME/.config/codex
+                if test -e $p
                     set -a bwrap_args --bind $p $p
                 end
             end
@@ -189,7 +185,6 @@ function yolo --description "Run a command in a bwrap sandbox"
 
     for env_name in \
         TERM COLORTERM LANG LC_ALL NO_COLOR \
-        XDG_CONFIG_HOME XDG_CACHE_HOME \
         HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
         http_proxy https_proxy all_proxy no_proxy \
         ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
@@ -208,25 +203,9 @@ function yolo --description "Run a command in a bwrap sandbox"
                 set -a command_args --dangerously-bypass-approvals-and-sandbox
             end
         case claude
-            set -l has_skip false
-            if contains -- --dangerously-skip-permissions $argv
-                set has_skip true
-            end
-            if test $has_skip = false
-                for i in (seq (count $argv))
-                    if test "$argv[$i]" = --permission-mode
-                        set -l next (math $i + 1)
-                        if test $next -le (count $argv); and test "$argv[$next]" = bypassPermissions
-                            set has_skip true
-                            break
-                        end
-                    else if test "$argv[$i]" = --permission-mode=bypassPermissions
-                        set has_skip true
-                        break
-                    end
-                end
-            end
-            if test $has_skip = false
+            set -l joined_argv (string join ' ' $argv)
+            if not string match -q '*--dangerously-skip-permissions*' $joined_argv
+                and not string match -q '*--permission-mode*bypassPermissions*' $joined_argv
                 set -a command_args --dangerously-skip-permissions
             end
     end
