@@ -143,13 +143,22 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         --setenv PATH (string join ':' $PATH) \
         --setenv PWD $workdir
 
+    # bwrap user namespace maps only our UID; root-owned files appear as
+    # nobody:nobody inside the sandbox.  SSH rejects included config files
+    # not owned by root or the current user, so /etc/ssh/ssh_config.d/*.conf
+    # fails.  Skip system ssh_config to avoid the ownership check.
+    if not set -q GIT_SSH_COMMAND
+        set -a bwrap_args --setenv GIT_SSH_COMMAND "ssh -F /dev/null"
+    end
+
     for env_name in \
         TERM COLORTERM LANG LC_ALL NO_COLOR \
         HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
         http_proxy https_proxy all_proxy no_proxy \
         ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
         OPENAI_API_KEY OPENAI_BASE_URL OPENAI_ORG_ID OPENAI_PROJECT_ID \
-        CODEX_HOME CLAUDE_CODE_SIMPLE
+        CODEX_HOME CLAUDE_CODE_SIMPLE \
+        GIT_SSH_COMMAND
         if set -q $env_name
             set -a bwrap_args --setenv $env_name $$env_name
         end
