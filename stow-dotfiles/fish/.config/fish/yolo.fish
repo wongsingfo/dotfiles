@@ -23,52 +23,250 @@ function _yolo_print_cmd --description "Pretty-print a command with one flag per
     echo "  $line" >&2
 end
 
-function _yolo_bind --description "Add bind if path exists and not already seen"
-    # argv[1] = seen-list var name, argv[2] = bwrap-args var name
-    # argv[3] = --ro-bind or --bind, argv[4..] = paths
-    set -l seen_var $argv[1]
-    set -l args_var $argv[2]
-    set -l bind_type $argv[3]
-    for p in $argv[4..-1]
-        if test -e $p; and not contains -- $p $$seen_var
-            set -a $seen_var $p
-            set -a $args_var $bind_type $p $p
+function _yolo_bwrap --description "Run command in bwrap sandbox"
+    # argv: ro_paths... -- rw_paths... -- command_args...
+    set -l ro_paths
+    set -l rw_paths
+    set -l command_args
+    set -l section ro
+    for arg in $argv
+        if test "$arg" = --
+            if test $section = ro
+                set section rw
+            else
+                set section cmd
+            end
+            continue
+        end
+        switch $section
+            case ro
+                set -a ro_paths $arg
+            case rw
+                set -a rw_paths $arg
+            case cmd
+                set -a command_args $arg
         end
     end
+
+    set -l workdir (pwd -P)
+    set -l sys_prefixes /usr /bin /lib /lib64 /etc
+
+    set -l bwrap_args \
+        --clearenv \
+        --proc /proc \
+        --dev /dev \
+        --tmpfs /tmp \
+        --unshare-all \
+        --share-net \
+        --die-with-parent
+
+    set -l ro_seen
+
+    # Helper: add ro-bind if path exists and not seen
+    # (inlined as a function would not see our local variables)
+    function _bwrap_ro --no-scope-shadowing
+        for p in $argv
+            if test -e $p; and not contains -- $p $ro_seen
+                set -a ro_seen $p
+                set -a bwrap_args --ro-bind $p $p
+            end
+        end
+    end
+
+    # System mounts (ro)
+    _bwrap_ro $sys_prefixes
+
+    # DNS resolver runtime mounts
+    if test -e /etc/resolv.conf
+        set -l resolv_source (readlink -f -- /etc/resolv.conf)
+        if test -n "$resolv_source"; and string match -q '/run/*' $resolv_source
+            set -l runtime_dir (dirname -- $resolv_source)
+            set -l current /run
+            set -a bwrap_args --dir $current
+            for component in (string split '/' (string replace '/run/' '' $runtime_dir))
+                set current $current/$component
+                set -a bwrap_args --dir $current
+            end
+            _bwrap_ro $runtime_dir
+        end
+    end
+
+    # Command and extra ro paths
+    set -l home_prefixes $HOME/.npm $HOME/.cargo $HOME/.local
+    for candidate in $ro_paths
+        set -l skip false
+        for prefix in $sys_prefixes
+            if test $candidate = $prefix; or string match -q "$prefix/*" $candidate
+                set skip true
+                break
+            end
+        end
+        test $skip = true; and continue
+        if test $candidate = $workdir; or string match -q "$workdir/*" $candidate
+            continue
+        end
+        set -l matched false
+        for prefix in $home_prefixes
+            if test -e $prefix; and string match -q "$prefix/*" $candidate
+                _bwrap_ro $prefix
+                set matched true
+                break
+            end
+        end
+        if test $matched = false
+            _bwrap_ro (dirname -- $candidate)
+        end
+    end
+
+    # Git/SSH state (ro)
+    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
+
+    # Working directory (rw)
+    if test -e $workdir
+        set -a bwrap_args --bind $workdir $workdir
+    end
+
+    # Cache + extra rw paths
+    if test -e $HOME/.cache
+        set -a bwrap_args --bind $HOME/.cache $HOME/.cache
+    end
+    for p in $rw_paths
+        if test -e $p
+            set -a bwrap_args --bind $p $p
+        end
+    end
+
+    # Environment
+    set -a bwrap_args \
+        --chdir $workdir \
+        --setenv HOME $HOME \
+        --setenv PATH (string join ':' $PATH) \
+        --setenv PWD $workdir
+
+    for env_name in \
+        TERM COLORTERM LANG LC_ALL NO_COLOR \
+        HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
+        http_proxy https_proxy all_proxy no_proxy \
+        ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
+        OPENAI_API_KEY OPENAI_BASE_URL OPENAI_ORG_ID OPENAI_PROJECT_ID \
+        CODEX_HOME CLAUDE_CODE_SIMPLE
+        if set -q $env_name
+            set -a bwrap_args --setenv $env_name $$env_name
+        end
+    end
+
+    functions -e _bwrap_ro
+    _yolo_print_cmd bwrap $bwrap_args -- $command_args
+    bwrap $bwrap_args $command_args
 end
 
-function _yolo_mount_resolv --description "Mount DNS resolver runtime dirs"
-    # argv[1] = bwrap-args var name, argv[2] = ro-seen var name
-    set -l args_var $argv[1]
-    set -l seen_var $argv[2]
-    test -e /etc/resolv.conf; or return
-    set -l resolv_source (readlink -f -- /etc/resolv.conf)
-    test -n "$resolv_source"; and string match -q '/run/*' $resolv_source; or return
+function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
+    # argv: ro_paths... -- rw_paths... -- command_args...
+    set -l ro_paths
+    set -l rw_paths
+    set -l command_args
+    set -l section ro
+    for arg in $argv
+        if test "$arg" = --
+            if test $section = ro
+                set section rw
+            else
+                set section cmd
+            end
+            continue
+        end
+        switch $section
+            case ro
+                set -a ro_paths $arg
+            case rw
+                set -a rw_paths $arg
+            case cmd
+                set -a command_args $arg
+        end
+    end
 
-    set -l runtime_dir (dirname -- $resolv_source)
-    set -l current /run
-    set -a $args_var --dir $current
-    for component in (string split '/' (string replace '/run/' '' $runtime_dir))
-        set current $current/$component
-        set -a $args_var --dir $current
+    set -l workdir (pwd -P)
+
+    # Build SBPL profile
+    set -l profile "(version 1)
+(deny default)
+(allow network*)
+(allow process-exec)
+(allow process-fork)
+(allow sysctl-read)
+(allow mach*)
+(allow ipc-posix-shm*)
+(allow signal)
+(allow file-read-metadata)
+
+; System (ro)
+(allow file-read* (subpath \"/usr\"))
+(allow file-read* (subpath \"/bin\"))
+(allow file-read* (subpath \"/sbin\"))
+(allow file-read* (subpath \"/etc\"))
+(allow file-read* (subpath \"/Library\"))
+(allow file-read* (subpath \"/System\"))
+(allow file-read* (subpath \"/private\"))
+(allow file-read* (subpath \"/dev\"))
+(allow file-read* (subpath \"/tmp\"))
+(allow file-read* file-write* (subpath \"/tmp\"))
+
+; Working directory (rw)
+(allow file-read* file-write* (subpath \"$workdir\"))
+
+; Cache (rw)
+(allow file-read* file-write* (subpath \"$HOME/.cache\"))"
+
+    # Git/SSH state (ro)
+    for p in $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
+        if test -e $p
+            if test -d $p
+                set profile "$profile
+(allow file-read* (subpath \"$p\"))"
+            else
+                set profile "$profile
+(allow file-read* (literal \"$p\"))"
+            end
+        end
     end
-    if test -e $runtime_dir; and not contains -- $runtime_dir $$seen_var
-        set -a $seen_var $runtime_dir
-        set -a $args_var --ro-bind $runtime_dir $runtime_dir
+
+    # Command ro paths
+    for p in $ro_paths
+        if test -e $p
+            if test -d $p
+                set profile "$profile
+(allow file-read* (subpath \"$p\"))"
+            else
+                set -l parent (dirname -- $p)
+                set profile "$profile
+(allow file-read* (subpath \"$parent\"))"
+            end
+        end
     end
+
+    # Extra rw paths (tool state)
+    for p in $rw_paths
+        if test -e $p
+            if test -d $p
+                set profile "$profile
+(allow file-read* file-write* (subpath \"$p\"))"
+            else
+                set profile "$profile
+(allow file-read* file-write* (literal \"$p\"))"
+            end
+        end
+    end
+
+    echo "+ sandbox-exec -p '...' $command_args" >&2
+    sandbox-exec -p $profile $command_args
 end
 
-function yolo --description "Run a command in a bwrap sandbox"
-    if not command -q bwrap
-        echo "bwrap is not installed or not on PATH" >&2
-        return 1
-    end
+function yolo --description "Run a command in a sandbox"
     if test (count $argv) -eq 0
         echo "usage: yolo <command> [args...]" >&2
         return 1
     end
 
-    set -l workdir (pwd -P)
     set -l original_command $argv[1]
     set -e argv[1]
 
@@ -94,105 +292,25 @@ function yolo --description "Run a command in a bwrap sandbox"
 
     set -l real_path (readlink -f -- $original_path)
     set -l tool_name (basename -- $original_path)
-    set -l sys_prefixes /usr /bin /lib /lib64 /etc
 
-    set -l bwrap_args \
-        --clearenv \
-        --proc /proc \
-        --dev /dev \
-        --tmpfs /tmp \
-        --unshare-all \
-        --share-net \
-        --die-with-parent
+    # Collect ro paths (command binary and its resolved path)
+    set -l ro_paths $original_path $real_path
 
-    set -l ro_seen
-
-    # System mounts (ro)
-    _yolo_bind ro_seen bwrap_args --ro-bind $sys_prefixes
-
-    # DNS resolver runtime mounts
-    _yolo_mount_resolv bwrap_args ro_seen
-
-    # Mount command paths (ro)
-    set -l home_prefixes $HOME/.npm $HOME/.cargo $HOME/.local
-    for candidate in $original_path $real_path
-        # Skip if under a system prefix (already mounted)
-        set -l skip false
-        for prefix in $sys_prefixes
-            if test $candidate = $prefix; or string match -q "$prefix/*" $candidate
-                set skip true
-                break
-            end
-        end
-        test $skip = true; and continue
-
-        # Skip if under workdir (will be rw-mounted)
-        if test $candidate = $workdir; or string match -q "$workdir/*" $candidate
-            continue
-        end
-
-        # Try known home prefixes first, else mount parent dir
-        set -l matched false
-        for prefix in $home_prefixes
-            if test -e $prefix; and string match -q "$prefix/*" $candidate
-                _yolo_bind ro_seen bwrap_args --ro-bind $prefix
-                set matched true
-                break
-            end
-        end
-        if test $matched = false
-            set -l parent (dirname -- $candidate)
-            _yolo_bind ro_seen bwrap_args --ro-bind $parent
-        end
-    end
-
-    # Working directory (rw)
-    if test -e $workdir
-        set -a bwrap_args --bind $workdir $workdir
-    end
-
-    # Cache dir (rw)
-    if test -e $HOME/.cache
-        set -a bwrap_args --bind $HOME/.cache $HOME/.cache
-    end
-
-    # Git state (ro)
-    _yolo_bind ro_seen bwrap_args --ro-bind \
-        $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
-
-    # Tool-specific state (rw)
+    # Collect rw paths (tool-specific state)
+    set -l rw_paths
     switch $tool_name
         case claude
             for p in $HOME/.claude $HOME/.claude.json
                 if test -e $p
-                    set -a bwrap_args --bind $p $p
+                    set -a rw_paths $p
                 end
             end
         case codex
             for p in $HOME/.codex $HOME/.config/codex
                 if test -e $p
-                    set -a bwrap_args --bind $p $p
+                    set -a rw_paths $p
                 end
             end
-    end
-
-    # Environment setup
-    set -a bwrap_args \
-        --chdir $workdir \
-        --setenv HOME $HOME \
-        --setenv PATH (string join ':' $PATH) \
-        --setenv PWD $workdir
-
-    for env_name in \
-        TERM COLORTERM LANG LC_ALL NO_COLOR \
-        HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
-        http_proxy https_proxy all_proxy no_proxy \
-        ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
-        OPENAI_API_KEY OPENAI_BASE_URL OPENAI_ORG_ID OPENAI_PROJECT_ID \
-        CODEX_HOME CLAUDE_CODE_SIMPLE
-        if set -q $env_name
-            set -a bwrap_args --setenv $env_name $$env_name
-        end
     end
 
     # Build command with tool-specific flags
@@ -211,6 +329,23 @@ function yolo --description "Run a command in a bwrap sandbox"
     end
     set -a command_args $argv
 
-    _yolo_print_cmd bwrap $bwrap_args -- $command_args
-    bwrap $bwrap_args $command_args
+    # Dispatch to OS-specific backend
+    set -l os (uname -s)
+    switch $os
+        case Linux
+            if not command -q bwrap
+                echo "bwrap is not installed or not on PATH" >&2
+                return 1
+            end
+            _yolo_bwrap $ro_paths -- $rw_paths -- $command_args
+        case Darwin
+            if not command -q sandbox-exec
+                echo "sandbox-exec is not available" >&2
+                return 1
+            end
+            _yolo_sandbox_exec $ro_paths -- $rw_paths -- $command_args
+        case '*'
+            echo "unsupported OS: $os" >&2
+            return 1
+    end
 end
