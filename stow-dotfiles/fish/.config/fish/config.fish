@@ -61,13 +61,6 @@ end
 # This overrides the prompt set by MAMBA_EXE
 fish_config prompt choose scales
 
-set -x GPT_SHELL "$HOME/dotfiles/chatgpt.sh"
-if test -f $GPT_SHELL
-	function gpt --wraps=bash
-		bash $GPT_SHELL $argv
-	end
-end
-
 if status is-interactive
 	# set -x TERM screen-256color
 	if test "$TERM" = "xterm"
@@ -114,6 +107,8 @@ if status is-interactive
 		# We set this env var to let it use LLM_USER_PATH
 		set -x LLM_USER_PATH $HOME/.config/io.datasette.llm
 	end
+
+	source (dirname (status --current-filename))/yolo.fish
 end
 
 # bun

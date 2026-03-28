@@ -1,5 +1,5 @@
 ---
-name: chinese-writing
+name: zh-writing
 description: 当任务涉及“润色/改写/提升文字质量/学术化表达/风格统一”时加载。
 ---
 

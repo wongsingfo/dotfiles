@@ -121,7 +121,7 @@
     "opencode-gemini-auth@latest",
     // Both oh-my-opencode and opencode-notifier listen to session.idle events.
     // Running both simultaneously can cause crashes on Windows.
-    "@mohak34/opencode-notifier@latest"
+    // "@mohak34/opencode-notifier@latest"
     // "oh-my-opencode"
   ],
 
@@ -176,6 +176,8 @@
       "latexmk *": "allow",
       "make *": "allow",
       "uv *": "allow",
+      "python *": "allow",
+      "python3 *": "allow",
       "go *": "allow",
       "npm *": "allow",
       "npx *": "allow"
