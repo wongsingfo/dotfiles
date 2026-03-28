@@ -1,3 +1,28 @@
+function _yolo_print_cmd --description "Pretty-print a command with one flag per line"
+    set -l line "+ $argv[1]"
+    set -l i 2
+    while test $i -le (count $argv)
+        set -l arg $argv[$i]
+        if test "$arg" = --
+            echo "  $line \\" >&2
+            echo "    --" $argv[(math $i + 1)..-1] >&2
+            return
+        end
+        if string match -q -- '--*' $arg
+            echo "  $line \\" >&2
+            set line "    $arg"
+            while test (math $i + 1) -le (count $argv); and not string match -q -- '--*' $argv[(math $i + 1)]
+                set i (math $i + 1)
+                set line "$line $argv[$i]"
+            end
+        else
+            set line "$line $arg"
+        end
+        set i (math $i + 1)
+    end
+    echo "  $line" >&2
+end
+
 function yolo --description "Run a command in a bwrap sandbox"
     if not command -q bwrap
         echo "bwrap is not installed or not on PATH" >&2
@@ -207,6 +232,6 @@ function yolo --description "Run a command in a bwrap sandbox"
     end
     set -a command_args $argv
 
-    echo "+" bwrap $bwrap_args $command_args >&2
+    _yolo_print_cmd bwrap $bwrap_args -- $command_args
     bwrap $bwrap_args $command_args
 end
