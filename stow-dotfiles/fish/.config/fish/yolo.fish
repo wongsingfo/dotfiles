@@ -60,6 +60,16 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         --share-net \
         --die-with-parent
 
+    # X11 display socket (must come after --tmpfs /tmp)
+    if test -d /tmp/.X11-unix
+        set -a bwrap_args --ro-bind /tmp/.X11-unix /tmp/.X11-unix
+    end
+
+    # Wayland display socket
+    if set -q WAYLAND_DISPLAY; and set -q XDG_RUNTIME_DIR; and test -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+        set -a bwrap_args --ro-bind "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
+    end
+
     set -l ro_seen
 
     # Helper: add ro-bind if path exists and not seen
@@ -121,6 +131,11 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     # Git/SSH state (ro)
     _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
 
+    # X auth cookie (ro)
+    if set -q XAUTHORITY; and test -e "$XAUTHORITY"
+        _bwrap_ro $XAUTHORITY
+    end
+
     # Working directory (rw)
     if test -e $workdir
         set -a bwrap_args --bind $workdir $workdir
@@ -152,16 +167,22 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     for env_name in \
+        DISPLAY WAYLAND_DISPLAY XAUTHORITY XDG_RUNTIME_DIR \
         TERM COLORTERM LANG LC_ALL NO_COLOR \
         HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
         http_proxy https_proxy all_proxy no_proxy \
-        ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
-        OPENAI_API_KEY OPENAI_BASE_URL OPENAI_ORG_ID OPENAI_PROJECT_ID \
+        ANTHROPIC_AUTH_TOKEN ANTHROPIC_BASE_URL ANTHROPIC_MODEL \
+        OPENAI_BASE_URL OPENAI_ORG_ID OPENAI_PROJECT_ID \
         CODEX_HOME CLAUDE_CODE_SIMPLE \
         GIT_SSH_COMMAND
         if set -q $env_name
             set -a bwrap_args --setenv $env_name $$env_name
         end
+    end
+
+    # Inherit all *_API_KEY environment variables
+    for env_name in (set --names -x | string match '*_API_KEY')
+        set -a bwrap_args --setenv $env_name $$env_name
     end
 
     functions -e _bwrap_ro
@@ -316,6 +337,12 @@ function yolo --description "Run a command in a sandbox"
             end
         case codex
             for p in $HOME/.codex $HOME/.config/codex
+                if test -e $p
+                    set -a rw_paths $p
+                end
+            end
+        case pi
+            for p in $HOME/.pi
                 if test -e $p
                     set -a rw_paths $p
                 end
