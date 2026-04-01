@@ -1,3 +1,8 @@
+# Bash wrapper:
+#   yolo() {
+#     fish -c 'source ~/.config/fish/yolo.fish; yolo $argv' -- "$@"
+#   }
+
 function _yolo_print_cmd --description "Pretty-print a command with one flag per line"
     set -l line "+ $argv[1]"
     set -l i 2
@@ -210,6 +215,13 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         set -a bwrap_args --setenv $env_name $$env_name
     end
 
+    # Extra env variables from --setenv flags
+    for env_name in $_yolo_extra_env
+        if set -q $env_name
+            set -a bwrap_args --setenv $env_name $$env_name
+        end
+    end
+
     functions -e _bwrap_ro
     _yolo_print_cmd bwrap $bwrap_args -- $command_args
     bwrap $bwrap_args $command_args
@@ -325,13 +337,48 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
 end
 
 function yolo --description "Run a command in a sandbox"
-    if test (count $argv) -eq 0
-        echo "usage: yolo <command> [args...]" >&2
+    # Parse yolo's own flags
+    set -l extra_env_names
+    set -l positional
+    set -l i 1
+    while test $i -le (count $argv)
+        switch $argv[$i]
+            case --help -h
+                echo "usage: yolo [options] <command> [args...]" >&2
+                echo >&2
+                echo "Run a command inside a sandboxed environment (bwrap on Linux, sandbox-exec on macOS)." >&2
+                echo >&2
+                echo "Options:" >&2
+                echo "  --help, -h          Show this help message" >&2
+                echo "  --setenv NAME       Pass environment variable NAME into the sandbox" >&2
+                echo "                      (can be specified multiple times)" >&2
+                echo >&2
+                echo "Examples:" >&2
+                echo "  yolo claude" >&2
+                echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
+                return 0
+            case --setenv
+                set i (math $i + 1)
+                if test $i -gt (count $argv)
+                    echo "yolo: --setenv requires an argument" >&2
+                    return 1
+                end
+                set -a extra_env_names $argv[$i]
+            case '*'
+                # First non-flag argument starts the command; collect the rest as-is
+                set positional $argv[$i..-1]
+                break
+        end
+        set i (math $i + 1)
+    end
+
+    if test (count $positional) -eq 0
+        echo "usage: yolo [options] <command> [args...]" >&2
         return 1
     end
 
-    set -l original_command $argv[1]
-    set -e argv[1]
+    set -l original_command $positional[1]
+    set -l argv $positional[2..-1]
 
     # Resolve command path
     set -l original_path
@@ -369,13 +416,7 @@ function yolo --description "Run a command in a sandbox"
                 end
             end
         case codex
-            for p in $HOME/.codex $HOME/.config/codex
-                if test -e $p
-                    set -a rw_paths $p
-                end
-            end
-        case pi
-            for p in $HOME/.pi
+            for p in $HOME/.codex
                 if test -e $p
                     set -a rw_paths $p
                 end
@@ -398,23 +439,32 @@ function yolo --description "Run a command in a sandbox"
     end
     set -a command_args $argv
 
+    # Export extra env names for sandbox backends
+    set -g _yolo_extra_env $extra_env_names
+
     # Dispatch to OS-specific backend
     set -l os (uname -s)
     switch $os
         case Linux
             if not command -q bwrap
                 echo "bwrap is not installed or not on PATH" >&2
+                set -e _yolo_extra_env
                 return 1
             end
             _yolo_bwrap $ro_paths -- $rw_paths -- $command_args
         case Darwin
             if not command -q sandbox-exec
                 echo "sandbox-exec is not available" >&2
+                set -e _yolo_extra_env
                 return 1
             end
             _yolo_sandbox_exec $ro_paths -- $rw_paths -- $command_args
         case '*'
             echo "unsupported OS: $os" >&2
+            set -e _yolo_extra_env
             return 1
     end
+    set -l ret $status
+    set -e _yolo_extra_env
+    return $ret
 end
