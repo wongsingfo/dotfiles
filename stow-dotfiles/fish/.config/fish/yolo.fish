@@ -65,6 +65,11 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         set -a bwrap_args --ro-bind /tmp/.X11-unix /tmp/.X11-unix
     end
 
+    # Claude Code tmpdir (rw, must come after --tmpfs /tmp)
+    if test -d /tmp/claude-(id -u)
+        set -a bwrap_args --bind /tmp/claude-(id -u) /tmp/claude-(id -u)
+    end
+
     # Wayland display socket
     if set -q WAYLAND_DISPLAY; and set -q XDG_RUNTIME_DIR; and test -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
         set -a bwrap_args --ro-bind "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
@@ -357,9 +362,9 @@ function yolo --description "Run a command in a sandbox"
                 set -a command_args --dangerously-bypass-approvals-and-sandbox
             end
         case claude
-            set -l joined_argv (string join ' ' $argv)
-            if not string match -q '*--dangerously-skip-permissions*' $joined_argv
-                and not string match -q '*--permission-mode*bypassPermissions*' $joined_argv
+            set -l joined_argv (string join -- ' ' $argv)
+            if not string match -q -- '*--dangerously-skip-permissions*' $joined_argv
+                and not string match -q -- '*--permission-mode*bypassPermissions*' $joined_argv
                 set -a command_args --dangerously-skip-permissions
             end
     end
