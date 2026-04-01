@@ -23,6 +23,20 @@ function _yolo_print_cmd --description "Pretty-print a command with one flag per
     echo "  $line" >&2
 end
 
+function _yolo_get_git_worktree_dir --description "Return git common dir if in a worktree with external git directory"
+    if not command -q git
+        return
+    end
+    if not git rev-parse --is-inside-work-tree >/dev/null 2>&1
+        return
+    end
+    set -l git_dir (git rev-parse --git-common-dir 2>/dev/null)
+    set -l workdir (pwd -P)
+    if test -n "$git_dir"; and test -d "$git_dir"; and not string match -q "$workdir/*" "$git_dir"
+        echo "$git_dir"
+    end
+end
+
 function _yolo_bwrap --description "Run command in bwrap sandbox"
     # argv: ro_paths... -- rw_paths... -- command_args...
     set -l ro_paths
@@ -146,6 +160,12 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         set -a bwrap_args --bind $workdir $workdir
     end
 
+    # If current directory is in a git worktree, also bind the actual git repo directory
+    set -l git_worktree_dir (_yolo_get_git_worktree_dir)
+    if test -n "$git_worktree_dir"
+        set -a bwrap_args --bind "$git_worktree_dir" "$git_worktree_dir"
+    end
+
     # Cache + extra rw paths
     if test -e $HOME/.cache
         set -a bwrap_args --bind $HOME/.cache $HOME/.cache
@@ -247,8 +267,16 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
 (allow file-read* file-write* (subpath \"/tmp\"))
 
 ; Working directory (rw)
-(allow file-read* file-write* (subpath \"$workdir\"))
+(allow file-read* file-write* (subpath \"$workdir\"))"
 
+    # If current directory is in a git worktree, also allow access to the actual git repo directory
+    set -l git_worktree_dir (_yolo_get_git_worktree_dir)
+    if test -n "$git_worktree_dir"
+        set profile "$profile
+(allow file-read* file-write* (subpath \"$git_worktree_dir\"))"
+    end
+
+    set profile "$profile
 ; Cache (rw)
 (allow file-read* file-write* (subpath \"$HOME/.cache\"))"
 
