@@ -1,21 +1,24 @@
 function load_env
-	set -l env_file (dirname (status --current-filename))/.env
+	set -l env_file (dirname (status --current-filename))/.env.toml
 	if test -f $env_file
 		while read -l line
+			set line (string trim -- "$line")
 			# Skip comments and empty lines
-			if string match -q -r '^\s*#' $line; or string match -q -r '^\s*$' $line
+			if test -z "$line"; or string match -q '#*' "$line"
 				continue
 			end
-			# Split by the first '='
-			set -l kv (string split -m 1 "=" $line)
-			if test (count $kv) -eq 2
-				set -l key (string trim $kv[1])
-				set -l value (string trim $kv[2])
-				# Remove surrounding quotes (one pair only)
-				set value (string replace -r '^["\'](.*)["\']$' '$1' $value)
+			# Stop at first [section] header
+			if string match -rq '^\[' "$line"
+				break
+			end
+			# Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
+			if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$' "$line"
+				set -l m (string match -r '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$' "$line")
+				set -l key $m[2]
+				set -l value (string replace -r '^["\'](.*)["\']$' '$1' $m[3])
 				set -gx $key "$value"
 			end
-		end < $env_file
+		end <$env_file
 	end
 end
 load_env
