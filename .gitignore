@@ -1,4 +1,4 @@
 stow-dotfiles/llm/.config/io.datasette.llm/keys.json
 stow-dotfiles/llm/.config/io.datasette.llm/logs.db
 stow-dotfiles/fish/.config/fish/.env
-.claude
+/.claude

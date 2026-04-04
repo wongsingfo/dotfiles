@@ -1,0 +1,5 @@
+{
+  "includeCoAuthoredBy": false,
+  "skipWebFetchPreflight": true,
+  "skipDangerousModePermissionPrompt": true
+}

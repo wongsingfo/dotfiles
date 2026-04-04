@@ -33,13 +33,13 @@ This framework enables session-agnostic handling of large tasks (e.g., full pape
 After completing the chunk:
 1. Mark it as completed with a timestamp.
 2. Add a work log entry (see template) covering: what was done, files changed, any task list modifications, and notes for the next agent.
-3. If chunks remain: state the next action. If all complete: mark status as `FINISHED`.
+3. If chunks remain: state the next action. If all chunks are complete: set the file's `status` to `COMPLETED`.
 
-If you hit a blocker before finishing, mark the task as `BLOCKED`, explain the issue in the work log, and notify the requester.
+If you hit a blocker before finishing, mark the chunk as `BLOCKED`, explain the issue in the work log, and set the file's `status` to `BLOCKED`.
 
 ### Step 4: Exit
-- If work remains: signal that the task is ready for the next agent.
-- If complete: notify the requester with a link to the progress file.
+- If work remains: exit so the runner script can launch the next agent.
+- If complete: print the path to the progress file and exit.
 
 ---
 
@@ -52,13 +52,13 @@ task_name: <human-readable name>
 task_context: |
   Full task description, requirements, constraints, and paths to relevant files.
 total_chunks: <N>
-status: IN_PROGRESS | FINISHED | BLOCKED
+status: IN_PROGRESS | COMPLETED | BLOCKED
 ---
 
 ## Work Chunks
 | ID | Description | Status | Assignee | Completed At |
 |----|-------------|--------|----------|--------------|
-| 1 | <description> | PENDING | | |
+| 1 | <description> | PENDING / IN_PROGRESS / COMPLETED / BLOCKED | | |
 | 2 | <description> | PENDING | | |
 
 ## Work Log
@@ -94,15 +94,12 @@ echo "<Task Name> Automatic Runner"
 echo "==========================="
 
 while true; do
-  if grep -q "status: FINISHED" progress-<slug>.md; then
+  if grep -q "status: COMPLETED" progress-<slug>.md; then
     echo "TASK COMPLETED!"
     break
   fi
-
-  next_action=$(awk '/## Next Action/{flag=1; next} /---/{flag=0} flag' progress-<slug>.md | grep -v '^$' | head -1)
-  echo "Starting next chunk: $next_action"
-
-  yolo --loadenv ark claude -p "
+  echo "Starting next chunk"
+  yolo --loadenv ark claude --verbose -p "
     STRICTLY FOLLOW THE INSTRUCTIONS IN prompt-task.md FOR LONG-RUNNING TASKS.
     1. Read progress-<slug>.md to understand the current task state
     2. Complete ONLY the NEXT PENDING work chunk (do NOT attempt multiple chunks)
@@ -121,4 +118,4 @@ done
 3. **Transparent logging:** Write enough detail so the next agent needs no rechecking.
 4. **Independent chunks:** No dependencies between chunks unless explicitly documented.
 5. **Document task list changes:** When modifying chunks, update `total_chunks`, renumber IDs if needed, and explain changes in the work log.
-6. **No assumptions:** If the progress file is ambiguous, ask for clarification before proceeding.
+6. **No assumptions:** If the progress file is ambiguous, mark the chunk as `BLOCKED` with a clear question in the work log rather than guessing.
