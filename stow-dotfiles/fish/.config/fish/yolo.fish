@@ -79,6 +79,11 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         --share-net \
         --die-with-parent
 
+    # Dotfile
+    if test -d $HOME/dotfiles
+        set -a bwrap_args --ro-bind $HOME/dotfiles $HOME/dotfiles
+    end
+
     # X11 display socket (must come after --tmpfs /tmp)
     if test -d /tmp/.X11-unix
         set -a bwrap_args --ro-bind /tmp/.X11-unix /tmp/.X11-unix
@@ -511,15 +516,10 @@ function yolo --description "Run a command in a sandbox"
     set -l command_args $original_path
     switch $tool_name
         case codex
-            if not contains -- --dangerously-bypass-approvals-and-sandbox $argv
-                set -a command_args --dangerously-bypass-approvals-and-sandbox
-            end
+            set -a command_args --dangerously-bypass-approvals-and-sandbox
         case claude
             set -l joined_argv (string join -- ' ' $argv)
-            if not string match -q -- '*--dangerously-skip-permissions*' $joined_argv
-                and not string match -q -- '*--permission-mode*bypassPermissions*' $joined_argv
-                set -a command_args --dangerously-skip-permissions
-            end
+            set -a command_args --permission-mode bypassPermissions
     end
     set -a command_args $argv
 
