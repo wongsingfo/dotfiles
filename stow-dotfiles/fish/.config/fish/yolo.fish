@@ -259,79 +259,45 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
     set -l workdir (pwd -P)
 
     # Build SBPL profile
+    # Allow all reads; sandbox restricts writes to workdir, cache, tmp, and tool state.
     set -l profile "(version 1)
 (deny default)
 (allow network*)
-(allow process-exec)
-(allow process-fork)
+(allow process*)
 (allow sysctl-read)
 (allow mach*)
 (allow ipc-posix-shm*)
 (allow signal)
-(allow file-read-metadata)
-
-; System (ro)
-(allow file-read* (subpath \"/usr\"))
-(allow file-read* (subpath \"/bin\"))
-(allow file-read* (subpath \"/sbin\"))
-(allow file-read* (subpath \"/etc\"))
-(allow file-read* (subpath \"/Library\"))
-(allow file-read* (subpath \"/System\"))
-(allow file-read* (subpath \"/private\"))
-(allow file-read* (subpath \"/dev\"))
-(allow file-read* (subpath \"/tmp\"))
-(allow file-read* file-write* (subpath \"/tmp\"))
+(allow file-read*)
+(allow file-ioctl)
+(allow file-write* (subpath \"/dev\"))
+(allow file-write* (subpath \"/tmp\"))
+(allow file-write* (subpath \"/private/tmp\"))
+(allow file-write* (subpath \"/private/var/folders\"))
 
 ; Working directory (rw)
-(allow file-read* file-write* (subpath \"$workdir\"))"
+(allow file-write* (subpath \"$workdir\"))"
 
     # If current directory is in a git worktree, also allow access to the actual git repo directory
     set -l git_worktree_dir (_yolo_get_git_worktree_dir)
     if test -n "$git_worktree_dir"
         set profile "$profile
-(allow file-read* file-write* (subpath \"$git_worktree_dir\"))"
+(allow file-write* (subpath \"$git_worktree_dir\"))"
     end
 
     set profile "$profile
 ; Cache (rw)
-(allow file-read* file-write* (subpath \"$HOME/.cache\"))"
-
-    # Git/SSH state (ro)
-    for p in $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
-        if test -e $p
-            if test -d $p
-                set profile "$profile
-(allow file-read* (subpath \"$p\"))"
-            else
-                set profile "$profile
-(allow file-read* (literal \"$p\"))"
-            end
-        end
-    end
-
-    # Command ro paths
-    for p in $ro_paths
-        if test -e $p
-            if test -d $p
-                set profile "$profile
-(allow file-read* (subpath \"$p\"))"
-            else
-                set -l parent (dirname -- $p)
-                set profile "$profile
-(allow file-read* (subpath \"$parent\"))"
-            end
-        end
-    end
+(allow file-write* (subpath \"$HOME/.cache\"))"
 
     # Extra rw paths (tool state)
     for p in $rw_paths
         if test -e $p
             if test -d $p
                 set profile "$profile
-(allow file-read* file-write* (subpath \"$p\"))"
+(allow file-write* (subpath \"$p\"))"
             else
                 set profile "$profile
-(allow file-read* file-write* (literal \"$p\"))"
+(allow file-write* (literal \"$p\"))"
             end
         end
     end
