@@ -63,6 +63,7 @@ PACKAGES=(
     bat
     cmake
     curl
+    deno
     git
     jq
     make

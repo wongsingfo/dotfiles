@@ -98,6 +98,7 @@ local function setup_lsp()
 		marksman = {},
 		lua_ls = lua_ls_config,
 		texlab = texlab_config,
+		denols = {},
 	}
 
 	for name, config in pairs(servers) do

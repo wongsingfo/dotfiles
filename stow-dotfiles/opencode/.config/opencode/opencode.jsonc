@@ -9,7 +9,10 @@
       "disabled": true
     }
   },
-  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
+
+  // "enabled_providers": ["volcengine", "google", "openai"],
+  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt"],
+
   // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
     "coco-gemini": {
@@ -186,7 +189,8 @@
     "bash": {
       "*": "ask",
 
-      "workspace/run.sh *": "allow",
+      "workspace/run.ts *": "allow",
+      "./workspace/run.ts *": "allow",
 
       "pwd": "allow",
       "sort": "allow",
@@ -213,15 +217,17 @@
       "awk *": "allow",
       "which *": "allow",
       "sort *": "allow",
+      "wc *": "allow",
 
-      "git log *": "allow",
       "git add *": "allow",
+      "git blame *": "allow",
       "git commit *": "allow",
       "git diff *": "allow",
       "git log *": "allow",
-      "git blame *": "allow",
-      "git status *": "allow",
+      "git log *": "allow",
+      "git rev-parse *": "allow",
       "git show *": "allow",
+      "git status *": "allow",
 
       "make *": "allow",
       "python3 -m py_compile *": "allow",
