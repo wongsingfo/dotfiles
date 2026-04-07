@@ -1,0 +1,9 @@
+{
+  "includeCoAuthoredBy": false,
+  "skipWebFetchPreflight": true,
+  "skipDangerousModePermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.py"
+  }
+}

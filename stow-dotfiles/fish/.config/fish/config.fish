@@ -1,3 +1,28 @@
+function load_env
+	set -l env_file (dirname (status --current-filename))/.env.toml
+	if test -f $env_file
+		while read -l line
+			set line (string trim -- "$line")
+			# Skip comments and empty lines
+			if test -z "$line"; or string match -q '#*' "$line"
+				continue
+			end
+			# Stop at first [section] header
+			if string match -rq '^\[' "$line"
+				break
+			end
+			# Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
+			if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$' "$line"
+				set -l m (string match -r '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$' "$line")
+				set -l key $m[2]
+				set -l value (string replace -r '^["\'](.*)["\']$' '$1' $m[3])
+				set -gx $key "$value"
+			end
+		end <$env_file
+	end
+end
+load_env
+
 set -x SHELL (which fish)
 
 if command -q less
@@ -11,14 +36,14 @@ else if command -q vim
 end
 
 function update_path
-	# Add .local/bin
 	if not string match -q -r "$HOME/.local/bin" $PATH
 		set -x PATH $HOME/.local/bin $PATH
 	end
-	# Check if $HOME/.cargo/bin is in $PATH
 	if not string match -q -r "$HOME/.cargo/bin" $PATH
-		# If it's not in $PATH, add it
 		set -x PATH $HOME/.cargo/bin $PATH
+	end
+	if not string match -q -r "$HOME/.npm/bin" $PATH
+		set -x PATH $HOME/.npm/bin $PATH
 	end
 	if not string match -q -r "/usr/local/texlive/2024/bin/x86_64-linux" $PATH
 		if test -d /usr/local/texlive/2024/bin/x86_64-linux
@@ -38,13 +63,6 @@ end
 
 # This overrides the prompt set by MAMBA_EXE
 fish_config prompt choose scales
-
-set -x GPT_SHELL "$HOME/dotfiles/chatgpt.sh"
-if test -f $GPT_SHELL
-	function gpt --wraps=bash
-		bash $GPT_SHELL $argv
-	end
-end
 
 if status is-interactive
 	# set -x TERM screen-256color
@@ -92,6 +110,8 @@ if status is-interactive
 		# We set this env var to let it use LLM_USER_PATH
 		set -x LLM_USER_PATH $HOME/.config/io.datasette.llm
 	end
+
+	source (dirname (status --current-filename))/yolo.fish
 end
 
 # bun

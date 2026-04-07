@@ -10,11 +10,59 @@
     }
   },
 
-  // "enabled_providers": ["volcengine", "google", "openai"],
-  "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt"],
+  // "enabled_providers": ["volcengine", "coco-gemini", "coco-gpt", "google", "openai"],
 
   // use `curl https://models.dev/api.json` to see the default model configs
   "provider": {
+    // https://codex-for.me/dashboard.html
+    "codex-for-me": {
+      "name": "codex-for-me",
+      "npm": "@ai-sdk/anthropic",
+      "options": {
+        "baseURL": "https://api-vip.codex-for.me/v1",
+        "apiKey": "{env:CODEX_ME_API_KEY}"
+      },
+      "models": {
+        "gpt-5.3-codex": {
+          "name": "gpt-5.3-codex",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 },
+          "variants": { "xhigh": { "reasoningEffort": "xhigh" }}
+        }
+      }
+    },
+    // https://www.packyapi.com/console
+    "packyapi-claude": {
+      "name": "packyapi-claude",
+      "npm": "@ai-sdk/anthropic",
+      "options": {
+        "baseURL": "https://api-slb.packyapi.com/v1",
+        "apiKey": "{env:PACKYAPI_CLAUDE_API_KEY}"
+      },
+      "models": {
+        "claude-sonnet-4-6": {
+          "name": "claude-sonnet-4-6",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 1000000, "output": 64000 }
+        }
+      }
+    },
+    "packyapi-codex": {
+      "name": "packyapi-codex",
+      "npm": "@ai-sdk/openai",
+      "options": {
+        // "baseURL": "https://www.packyapi.com/v1",
+        "baseURL": "https://api-slb.packyapi.com/v1",
+        "apiKey": "{env:PACKYAPI_CODEX_API_KEY}"
+      },
+      "models": {
+        "gpt-5.3-codex": {
+          "name": "gpt-5.3-codex",
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 }
+        }
+      }
+    },
     "coco-gemini": {
       "npm": "@ai-sdk/google",
       "name": "coco (Gemini family)",
@@ -23,43 +71,10 @@
         "apiKey": "secret"
       },
       "models": {
-        "gemini-3-flash-preview": {
-          "name": "Gemini Flash",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          }
-        },
         "gemini-3-pro-preview-new": {
           "name": "Gemini Pro",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          }
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 1048576, "output": 65536 }
         }
       }
     },
@@ -71,62 +86,10 @@
         "apiKey": "secret"
       },
       "models": {
-        "gpt-5": {
-          "name": "GPT-5",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
-        },
-        "gpt-5.1": {
-          "name": "GPT-5.1",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
-        },
         "gpt-5.2": {
           "name": "GPT-5.2",
-          "attachment": true,
-          "reasoning": true,
-          "tool_call": true,
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "limit": {
-            "context": 400000,
-            "output": 128000
-          }
+          "modalities": { "input": [ "text", "image" ], "output": [ "text" ] },
+          "limit": { "context": 400000, "output": 128000 }
         }
       }
     },
@@ -134,111 +97,113 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "volcengine",
       "options": {
-        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3"
+        "baseURL": "https://ark.cn-beijing.volces.com/api/coding/v3",
+        "apiKey": "{env:ARK_API_KEY}"
       },
       "models": {
         "ark-code-latest": {
           "name": "Ark-Code",
-          "limit": {
-            "context": 256000,
-            "output": 256000
-          },
-          "options": {
-            "thinking": {
-              "type": "enabled"
-            }
-          }
+          "limit": { "context": 256000, "output": 256000 },
+          "options": { "thinking": { "type": "enabled" } }
         }
       }
     },
     "google": {
-      "models": {
-       "gemini-3-flash-preview": {
-         "options": {
-           "thinkingConfig": {
-             "thinkingLevel": "high",
-             "includeThoughts": true
-           }
-         }
-       },
-       "gemini-3-pro-preview": {
-         "options": {
-           "thinkingConfig": {
-             "thinkingLevel": "high",
-             "includeThoughts": true
-           }
-         }
-       }
-      },
       // https://github.com/jenslys/opencode-gemini-auth/issues/38
       "options": {
         "projectId": "gen-lang-client-0101595700"
       }
     }
   },
+
   "plugin": [
     "opencode-openai-codex-auth@latest",
     "opencode-gemini-auth@latest",
     // Both oh-my-opencode and opencode-notifier listen to session.idle events.
     // Running both simultaneously can cause crashes on Windows.
-    "@mohak34/opencode-notifier@latest"
+    // "@mohak34/opencode-notifier@latest"
     // "oh-my-opencode"
   ],
+
   "permission": {
+    "external_directory": "ask",
+    "doom_loop": "ask",
     "edit": "allow",
+
+    // WARN: be aware of the web security
+    "webfetch": "allow",
+    "websearch": "allow",
+
     "bash": {
       "*": "ask",
 
       "workspace/run.ts *": "allow",
       "./workspace/run.ts *": "allow",
 
-      "pwd": "allow",
-      "sort": "allow",
-
-      "date *": "allow",
-      "touch *": "allow",
-      "mkdir *": "allow",
-      "rg *": "allow",
-      "grep *": "allow",
-      "test *": "allow",
-      "echo *": "allow",
-      "printf *": "allow",
-      "curl *": "allow",
-      "ls *": "allow",
-      "cat *": "allow",
-      "tee *": "allow",
-      "sleep *": "allow",
-      "head *": "allow",
-      "tail *": "allow",
-      "sed *": "allow",
-      "find *": "allow",
-      "xargs find *": "allow",
-      "fd *": "allow",
       "awk *": "allow",
-      "which *": "allow",
+      "cat *": "allow",
+      "cp *": "allow",
+      "curl *": "allow",
+      "date *": "allow",
+      "echo *": "allow",
+      "fd *": "allow",
+      "file *": "allow",
+      "find *": "allow",
+      "grep *": "allow",
+      "gunzip *": "allow",
+      "head *": "allow",
+      "jq *": "allow",
+      "ls *": "allow",
+      "mkdir *": "allow",
+      "mv *": "allow",
+      "pcregrep *": "allow",
+      "printf *": "allow",
+      "pwd *": "allow",
+      "read *": "allow",
+      "rg *": "allow",
+      "sed *": "allow",
+      "sleep *": "allow",
       "sort *": "allow",
+      "tail *": "allow",
+      "tee *": "allow",
+      "test *": "allow",
+      "touch *": "allow",
+      "tree *": "allow",
       "wc *": "allow",
+      "which *": "allow",
+      "xargs find *": "allow",
 
-      "git add *": "allow",
-      "git blame *": "allow",
-      "git commit *": "allow",
-      "git diff *": "allow",
-      "git log *": "allow",
-      "git log *": "allow",
-      "git rev-parse *": "allow",
-      "git show *": "allow",
-      "git status *": "allow",
-
+      "git *": "allow",
+      "go *": "allow",
+      "latexmk *": "allow",
       "make *": "allow",
-      "python3 -m py_compile *": "allow",
-      "pytest *": "allow",
-      "go build *": "allow",
-      "npm install *": "allow",
+      "npm *": "allow",
       "npx *": "allow",
-      "npm run *": "allow"
+      "python *": "allow",
+      "python3 *": "allow",
+      "uv *": "allow",
+      "workspace/run.sh *": "allow",
+    }
+  },
+
+  "mcp": {
+    "exa": {
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey={env:EXA_API_KEY}",
+      "enabled": true
     },
-    "webfetch": "allow",
-    "doom_loop": "ask",
-    "external_directory": "ask"
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--proxy-server=http://localhost:7890"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "YOUR_API_KEY"
+      },
+      "enabled": false
+    }
   }
 }

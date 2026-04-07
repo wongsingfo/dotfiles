@@ -36,6 +36,10 @@ workspace/
 
 Avoid unstructured, back-and-forth chatting with LLMs in the terminal. This often leads to messy context and makes it difficult to track changes. instead, maintain a **Specification (Spec)**.
 
+Avoid the 'One-shot' approach: forcing an AI to generate a complete tool in one go often results in poor code quality and a maintenance nightmare.
+
+A superior strategy is incremental development, where the human maintains control over the abstraction layers. Manually defining the project skeleton ensures that the generated code aligns with your personal style and development habits.
+
 Treat the LLM as a "translator" that converts between Specification, Code, and Tests.
 
 ### The Spec-Driven Workflow
