@@ -309,7 +309,7 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
         set li (math $li + 1)
     end
 
-    echo "+ sandbox-exec -p '...' $command_args" >&2
+    echo "+ sandbox-exec -p '$profile'" $command_args >&2
     sandbox-exec -p $profile $command_args
     set -l sandbox_ret $status
 

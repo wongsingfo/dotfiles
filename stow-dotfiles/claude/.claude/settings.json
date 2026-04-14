@@ -2,8 +2,23 @@
   "includeCoAuthoredBy": false,
   "skipWebFetchPreflight": true,
   "skipDangerousModePermissionPrompt": true,
-  "statusLine": {
-    "type": "command",
-    "command": "~/.claude/statusline.py"
+  "mcpServers": {
+    "tavily-remote-mcp": {
+      "type": "http",
+      "url": "https://mcp.tavily.com/mcp/"
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$(uname)\" = \"Darwin\" ]; then osascript -e 'display dialog \"Claude Code needs your attention\" with title \"Claude Code\" buttons {\"OK\"} default button \"OK\"'; fi"
+          }
+        ]
+      }
+    ]
   }
 }
