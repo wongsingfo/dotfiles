@@ -61,8 +61,13 @@ if test -f $MAMBA_EXE
 	$MAMBA_EXE shell activate | source
 end
 
-# This overrides the prompt set by MAMBA_EXE
-fish_config prompt choose scales
+# This overrides the prompt set by MAMBA_EXE.
+# `fish_config prompt choose` was added in fish 3.4; on older fish (e.g.
+# Debian buster ships 3.1.2) it falls back to launching the web config UI.
+set -l _fv (string split . -- $version)
+if test $_fv[1] -ge 4; or begin; test $_fv[1] -eq 3; and test $_fv[2] -ge 4; end
+	fish_config prompt choose scales
+end
 
 if status is-interactive
 	# set -x TERM screen-256color

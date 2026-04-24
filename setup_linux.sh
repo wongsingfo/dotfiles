@@ -250,8 +250,19 @@ fi
 echo "[fish] Setting up Fish shell..."
 echo "[fish] Fish version: $(fish --version)"
 
-# Install Fisher and plugins
-fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
+# Install Fisher and plugins.
+# PatrickF1/fzf.fish uses `set -f` (function-local scope) which was added in
+# fish 3.5; on older fish (e.g. Debian buster ships 3.1.2) the plugin emits
+# errors on every shell start. Skip the install there — config.fish already
+# falls back to the native `fzf --fish | source` integration.
+FISH_VER=$(fish -c 'echo $version' 2>/dev/null)
+FISH_MAJOR=${FISH_VER%%.*}
+FISH_MINOR=$(echo "$FISH_VER" | cut -d. -f2)
+if [ "${FISH_MAJOR:-0}" -gt 3 ] || { [ "${FISH_MAJOR:-0}" -eq 3 ] && [ "${FISH_MINOR:-0}" -ge 5 ]; }; then
+    fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install PatrickF1/fzf.fish'
+else
+    echo "[fish] Skipping fisher/fzf.fish install: fish $FISH_VER is too old (need >= 3.5). Native 'fzf --fish | source' in config.fish covers fzf integration."
+fi
 
 # Configure .bashrc to start fish automatically (from README.md)
 echo "[bash] Configuring .bashrc to automatically start fish..."
