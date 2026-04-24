@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Resolve script directory up-front, before any `cd` later in the script can
+# break a relative ${BASH_SOURCE[0]} (e.g. when invoked as ./setup_linux.sh).
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 function show_help() {
     cat <<EOF
 Usage: $0 [options]
@@ -42,34 +46,58 @@ if [ -f /etc/debian_version ]; then
 
     # Install apt packages
     echo "[system] Installing system packages..."
-    sudo apt-get install -y \
-        7zip \
-        bat \
-        cmake \
-        curl \
-        gcc g++ \
-        git \
-        iproute2 \
-        jq \
-        libncurses5-dev libncursesw5-dev \
-        make \
-        python3 python3-pynvim python3-venv \
-        ripgrep \
-        rsync \
-        software-properties-common \
-        stow \
-        sudo \
-        ssh \
-        sshpass \
-        unzip \
-        uuid-runtime \
-        zoxide
+    # Packages that may not exist on older Debian; install individually to tolerate missing ones
+    APT_PACKAGES=(
+        cmake curl gcc g++ git iproute2 jq
+        libevent-dev libncurses5-dev libncursesw5-dev
+        make python3 python3-pip python3-venv ripgrep rsync
+        software-properties-common stow sudo ssh sshpass
+        unzip uuid-runtime
+    )
+    # Try distribution-specific names
+    for pkg in "7zip" "p7zip-full"; do
+        if apt-cache show "$pkg" &>/dev/null; then APT_PACKAGES+=("$pkg"); break; fi
+    done
+    if apt-cache show "python3-pynvim" &>/dev/null; then APT_PACKAGES+=("python3-pynvim"); fi
+    if apt-cache show "zoxide" &>/dev/null; then APT_PACKAGES+=("zoxide"); fi
 
-    # Install latest Fish shell from PPA
-    echo "[fish] Installing Fish shell from PPA..."
-    sudo add-apt-repository -y ppa:fish-shell/release-4
-    sudo apt-get update
-    sudo apt-get install -y fish
+    sudo apt-get install -y "${APT_PACKAGES[@]}"
+
+    # Install pynvim via pip if apt package unavailable
+    if ! python3 -c "import pynvim" &>/dev/null; then
+        echo "[system] Installing pynvim via pip3..."
+        python3 -m pip install --user pynvim 2>/dev/null || pip3 install --user pynvim 2>/dev/null || sudo python3 -m pip install pynvim
+    fi
+
+    # Install zoxide from GitHub if not available via apt
+    if ! command -v zoxide &>/dev/null; then
+        echo "[zoxide] Installing zoxide from GitHub..."
+        curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    # Install Fish shell
+    if ! command -v fish &> /dev/null; then
+        if [ -f /etc/lsb-release ] && grep -q Ubuntu /etc/lsb-release 2>/dev/null; then
+            # Ubuntu: use PPA for latest Fish 4.x
+            echo "[fish] Installing Fish shell from PPA (Ubuntu)..."
+            sudo add-apt-repository -y ppa:fish-shell/release-4
+            sudo apt-get update
+            sudo apt-get install -y fish
+        else
+            # Debian: try backports first, fallback to repo version
+            echo "[fish] Installing Fish shell (Debian)..."
+            DISTRO_CODENAME=$(lsb_release -cs 2>/dev/null || (. /etc/os-release && echo "$VERSION_CODENAME"))
+            if sudo apt-get install -y -t "${DISTRO_CODENAME}-backports" fish 2>/dev/null; then
+                echo "[fish] Installed Fish from backports."
+            else
+                echo "[fish] Backports not available, installing from default repo..."
+                sudo apt-get install -y fish
+            fi
+        fi
+    else
+        echo "[fish] Fish is already installed."
+    fi
 else
     echo "[system] Warning: Not on Debian/Ubuntu. Skipping apt package installation."
     echo "[system] Please ensure you have the equivalent packages installed manually."
@@ -149,17 +177,11 @@ else
     echo "[neovim] Neovim is already installed."
 fi
 
-# Install uv and llm
+# Install uv
 if ! command -v uv &> /dev/null; then
     echo "[uv] Installing uv..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
-fi
-
-if ! command -v llm &> /dev/null; then
-    echo "[llm] Installing llm tool..."
-    uv tool install llm
-    llm install llm-openrouter
 fi
 
 # Install OpenCode
@@ -185,11 +207,27 @@ else
 fi
 
 # Stow Dotfiles
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ -d "$SCRIPT_DIR/stow-dotfiles" ]; then
     echo "[stow] Stowing dotfiles..."
     cd "$SCRIPT_DIR/stow-dotfiles"
-    stow -t "$HOME" -R *
+
+    # Pre-resolve conflicts: stow refuses to overwrite existing regular files
+    # (e.g. ~/.config/fish/fish_variables auto-created by fish on first run,
+    #  ~/.claude/settings.json created by Claude Code). Back them up to .bak
+    # so stow can plant its symlink.
+    for pkg in */; do
+        pkg="${pkg%/}"
+        while IFS= read -r -d '' src; do
+            rel="${src#$pkg/}"
+            target="$HOME/$rel"
+            if [ -e "$target" ] && [ ! -L "$target" ] && [ ! -d "$target" ]; then
+                echo "[stow] Backing up conflicting $target -> $target.bak"
+                mv "$target" "$target.bak"
+            fi
+        done < <(find "$pkg" -type f -print0)
+    done
+
+    stow -t "$HOME" -R */
     cd "$SCRIPT_DIR"
 else
     echo "[stow] Error: stow-dotfiles directory not found in $SCRIPT_DIR"
