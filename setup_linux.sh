@@ -171,8 +171,8 @@ fi
 
 # Install Neovim
 if ! command -v nvim &> /dev/null; then
-    echo "[neovim] Installing Neovim (v0.11.5)..."
-    curl -L https://github.com/neovim/neovim-releases/releases/download/v0.11.5/nvim-linux-x86_64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
+    echo "[neovim] Installing Neovim (v0.12.2)..."
+    curl -L https://github.com/neovim/neovim-releases/releases/download/v0.12.2/nvim-linux-x86_64.tar.gz | sudo tar zxf - -C /usr/local/ --strip-components=1
 else
     echo "[neovim] Neovim is already installed."
 fi
