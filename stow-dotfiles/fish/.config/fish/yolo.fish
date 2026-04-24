@@ -274,6 +274,8 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
 (allow file-write* (subpath \"/tmp\"))
 (allow file-write* (subpath \"/private/tmp\"))
 (allow file-write* (subpath \"/private/var/folders\"))
+(allow file-write* (subpath \"/Users/bytedance/Library/Application Support/lark-cli\"))
+(allow file-write* (subpath \"/Users/bytedance/.lark-cli/\"))
 
 ; Working directory (rw)
 (allow file-write* (subpath \"$workdir\"))"

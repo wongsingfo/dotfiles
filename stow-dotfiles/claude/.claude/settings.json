@@ -1,27 +1,15 @@
 {
   "includeCoAuthoredBy": false,
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ \"$(uname)\" = \"Darwin\" ]; then osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"'; fi"
-          }
-        ]
-      }
-    ]
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   },
   "skipWebFetchPreflight": true,
+  "awaySummaryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "mcpServers": {
     "tavily-remote-mcp": {
       "type": "http",
       "url": "https://mcp.tavily.com/mcp/"
     }
-  },
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
   }
 }
