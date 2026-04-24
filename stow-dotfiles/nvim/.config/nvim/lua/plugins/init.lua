@@ -11,13 +11,13 @@ vim.pack.add({
 	-- Colorscheme (load early so messages are themed)
 	{ src = "https://github.com/rebelot/kanagawa.nvim" },
 
-	-- Treesitter and its companion plugins.
-	-- Pin nvim-treesitter to v0.10.0 (last v0.x stable) — v1.0 is a full
-	-- rewrite that drops the `nvim-treesitter.configs` module our config
-	-- uses. Drop `playground` (replaced by built-in `:InspectTree` in
-	-- nvim 0.12) and `nvim-treesitter-textobjects` (v1.0 changed module
-	-- layout and API, would need a separate migration).
-	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "v0.10.0" },
+	-- Treesitter context only.
+	-- We use nvim's built-in treesitter (vim.treesitter.start) with the
+	-- parsers bundled in nvim 0.12 (c, lua, markdown, markdown_inline,
+	-- query, vim, vimdoc) — that avoids needing the tree-sitter CLI,
+	-- whose prebuilt binary requires glibc 2.29+ (Debian buster ships
+	-- 2.28).  Languages without a bundled parser fall back to vim's
+	-- regex syntax highlighting.
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
 
 	-- Telescope and its hard deps
