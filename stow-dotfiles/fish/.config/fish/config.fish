@@ -117,8 +117,12 @@ if status is-interactive
 	end
 
 	source (dirname (status --current-filename))/yolo.fish
-end
 
-# bun
-set --export BUN_INSTALL "$HOME/.bun"
-set --export PATH $BUN_INSTALL/bin $PATH
+	set -Ux PYENV_ROOT $HOME/.pyenv
+	test -d $PYENV_ROOT/bin; and set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
+	pyenv init - fish | source
+
+	# bun
+	set --export BUN_INSTALL "$HOME/.bun"
+	set --export PATH $BUN_INSTALL/bin $PATH
+end
