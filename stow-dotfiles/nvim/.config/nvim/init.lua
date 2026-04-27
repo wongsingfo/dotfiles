@@ -84,8 +84,6 @@ end, {
        nowait = true,
 })
 
-vim.keymap.set('n', '<leader>gg', '<cmd>LspStart<CR>')
-
 -- For tex backward jump from SumatraPDF
 if vim.fn.has('win32') == 1 then
     -- nvr -c "OpenFileWindows %f %l"
