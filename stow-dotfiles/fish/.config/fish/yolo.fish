@@ -47,6 +47,7 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     set -l ro_paths
     set -l rw_paths
     set -l command_args
+
     set -l section ro
     for arg in $argv
         if test "$arg" = --
@@ -71,7 +72,6 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     set -l sys_prefixes /usr /bin /lib /lib64 /etc
 
     set -l bwrap_args \
-        --clearenv \
         --proc /proc \
         --dev /dev \
         --tmpfs /tmp \
@@ -219,10 +219,14 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         end
     end
 
-    # Env variables loaded from .env.toml via --loadenv
+    # Env variables from --loadenv / --setenv NAME=VALUE (empty value = unset)
     set -l li 1
     while test $li -le (count $_yolo_loaded_env_names)
-        set -a bwrap_args --setenv $_yolo_loaded_env_names[$li] $_yolo_loaded_env_values[$li]
+        if test -z "$_yolo_loaded_env_values[$li]"
+            set -a bwrap_args --unsetenv $_yolo_loaded_env_names[$li]
+        else
+            set -a bwrap_args --setenv $_yolo_loaded_env_names[$li] $_yolo_loaded_env_values[$li]
+        end
         set li (math $li + 1)
     end
 
@@ -304,22 +308,25 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
         end
     end
 
-    # Set loaded env vars for sandbox-exec (inherits parent env)
+    # Build env modifier args for sandbox-exec (empty value = unset)
+    set -l env_args
     set -l li 1
     while test $li -le (count $_yolo_loaded_env_names)
-        set -gx $_yolo_loaded_env_names[$li] $_yolo_loaded_env_values[$li]
+        if test -z "$_yolo_loaded_env_values[$li]"
+            set -a env_args -u $_yolo_loaded_env_names[$li]
+        else
+            set -a env_args "$_yolo_loaded_env_names[$li]=$_yolo_loaded_env_values[$li]"
+        end
         set li (math $li + 1)
     end
 
     echo "+ sandbox-exec -p '$profile'" $command_args >&2
-    sandbox-exec -p $profile $command_args
-    set -l sandbox_ret $status
-
-    # Clean up loaded env vars
-    for env_name in $_yolo_loaded_env_names
-        set -e $env_name
+    if test (count $env_args) -gt 0
+        env $env_args sandbox-exec -p $profile $command_args
+    else
+        sandbox-exec -p $profile $command_args
     end
-    return $sandbox_ret
+    return $status
 end
 
 function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALUE pairs for a group"
@@ -382,9 +389,12 @@ function yolo --description "Run a command in a sandbox"
                 echo >&2
                 echo "Options:" >&2
                 echo "  --help, -h          Show this help message" >&2
-                echo "  --setenv NAME       Pass environment variable NAME into the sandbox" >&2
+                echo "  --setenv NAME       Pass NAME from parent env into the sandbox" >&2
+                echo "  --setenv NAME=VAL   Set NAME to VAL in the sandbox" >&2
+                echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
                 echo "                      (can be specified multiple times)" >&2
                 echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
+                echo "                      (entries with empty value unset the variable)" >&2
                 echo "                      (can be specified multiple times)" >&2
                 echo >&2
                 echo "Environment file: $env_file" >&2
@@ -400,7 +410,15 @@ function yolo --description "Run a command in a sandbox"
                     echo "yolo: --setenv requires an argument" >&2
                     return 1
                 end
-                set -a extra_env_names $argv[$i]
+                set -l setenv_arg $argv[$i]
+                if string match -q '*=*' -- $setenv_arg
+                    set -l name (string replace -r '=.*' '' -- $setenv_arg)
+                    set -l value (string replace -r '^[^=]*=' '' -- $setenv_arg)
+                    set -a loaded_env_names $name
+                    set -a loaded_env_values "$value"
+                else
+                    set -a extra_env_names $setenv_arg
+                end
             case --loadenv
                 set i (math $i + 1)
                 if test $i -gt (count $argv)
@@ -417,9 +435,11 @@ function yolo --description "Run a command in a sandbox"
                     return 1
                 end
                 for pair in $pairs
-                    set -l kv (string split -m 1 '=' "$pair")
-                    set -a loaded_env_names $kv[1]
-                    set -a loaded_env_values $kv[2]
+                    if string match -rq '^([^=]+)=(.*)$' -- "$pair"
+                        set -l m (string match -r '^([^=]+)=(.*)$' -- "$pair")
+                        set -a loaded_env_names $m[2]
+                        set -a loaded_env_values "$m[3]"
+                    end
                 end
             case '*'
                 # First non-flag argument starts the command; collect the rest as-is

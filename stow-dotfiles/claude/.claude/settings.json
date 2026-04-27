@@ -19,5 +19,18 @@
       "type": "http",
       "url": "https://mcp.tavily.com/mcp/"
     }
+  },
+  "preferredNotifChannel": "terminal_bell",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -n \"$TMUX_PANE\" ] && printf '\\a' > \"$(tmux display-message -pt \"$TMUX_PANE\" '#{pane_tty}' 2>/dev/null)\" 2>/dev/null || printf '\\a' > /dev/tty 2>/dev/null"
+          }
+        ]
+      }
+    ]
   }
 }
