@@ -382,6 +382,7 @@ function yolo --description "Run a command in a sandbox"
     set -l extra_env_names
     set -l loaded_env_names
     set -l loaded_env_values
+    set -l passthrough false
     set -l positional
     set -l i 1
     set -l env_file (dirname (status filename))/.env.toml
@@ -401,6 +402,7 @@ function yolo --description "Run a command in a sandbox"
                 echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
                 echo "                      (entries with empty value unset the variable)" >&2
                 echo "                      (can be specified multiple times)" >&2
+                echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
                 echo >&2
                 echo "Environment file: $env_file" >&2
                 echo >&2
@@ -446,6 +448,8 @@ function yolo --description "Run a command in a sandbox"
                         set -a loaded_env_values "$m[3]"
                     end
                 end
+            case --yolo
+                set passthrough true
             case '*'
                 # First non-flag argument starts the command; collect the rest as-is
                 set positional $argv[$i..-1]
@@ -520,6 +524,34 @@ function yolo --description "Run a command in a sandbox"
     set -g _yolo_extra_env $extra_env_names
     set -g _yolo_loaded_env_names $loaded_env_names
     set -g _yolo_loaded_env_values $loaded_env_values
+
+    # --yolo: skip sandbox, only apply env mutations.
+    if $passthrough
+        set -l env_unsets
+        set -l env_sets
+        set -l li 1
+        while test $li -le (count $loaded_env_names)
+            if test -z "$loaded_env_values[$li]"
+                set -a env_unsets -u $loaded_env_names[$li]
+            else
+                set -a env_sets "$loaded_env_names[$li]=$loaded_env_values[$li]"
+            end
+            set li (math $li + 1)
+        end
+        # `env` requires all -u flags before any NAME=VALUE assignments.
+        set -l env_args $env_unsets $env_sets
+        _yolo_print_cmd env $env_args -- $command_args
+        if test (count $env_args) -gt 0
+            env $env_args $command_args
+        else
+            $command_args
+        end
+        set -l ret $status
+        set -e _yolo_extra_env
+        set -e _yolo_loaded_env_names
+        set -e _yolo_loaded_env_values
+        return $ret
+    end
 
     # Dispatch to OS-specific backend
     set -l os (uname -s)
