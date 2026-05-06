@@ -42,6 +42,30 @@ function _yolo_get_git_worktree_dir --description "Return git common dir if in a
     end
 end
 
+function _yolo_build_env_args --description "Emit env(1) args from _yolo_loaded_env_*; -u flags first, then NAME=VAL"
+    # `env` requires all -u flags before any NAME=VALUE assignments.
+    set -l unsets
+    set -l sets
+    set -l li 1
+    while test $li -le (count $_yolo_loaded_env_names)
+        if test -z "$_yolo_loaded_env_values[$li]"
+            set -a unsets -u $_yolo_loaded_env_names[$li]
+        else
+            set -a sets "$_yolo_loaded_env_names[$li]=$_yolo_loaded_env_values[$li]"
+        end
+        set li (math $li + 1)
+    end
+    for arg in $unsets $sets
+        echo $arg
+    end
+end
+
+function _yolo_cleanup --description "Clear yolo's transient global env state"
+    set -e _yolo_extra_env
+    set -e _yolo_loaded_env_names
+    set -e _yolo_loaded_env_values
+end
+
 function _yolo_bwrap --description "Run command in bwrap sandbox"
     # argv: ro_paths... -- rw_paths... -- command_args...
     set -l ro_paths
@@ -314,16 +338,7 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
     end
 
     # Build env modifier args for sandbox-exec (empty value = unset)
-    set -l env_args
-    set -l li 1
-    while test $li -le (count $_yolo_loaded_env_names)
-        if test -z "$_yolo_loaded_env_values[$li]"
-            set -a env_args -u $_yolo_loaded_env_names[$li]
-        else
-            set -a env_args "$_yolo_loaded_env_names[$li]=$_yolo_loaded_env_values[$li]"
-        end
-        set li (math $li + 1)
-    end
+    set -l env_args (_yolo_build_env_args)
 
     echo "+ sandbox-exec -p '$profile'" $command_args >&2
     if test (count $env_args) -gt 0
@@ -527,29 +542,16 @@ function yolo --description "Run a command in a sandbox"
 
     # --yolo: skip sandbox, only apply env mutations.
     if $passthrough
-        set -l env_unsets
-        set -l env_sets
-        set -l li 1
-        while test $li -le (count $loaded_env_names)
-            if test -z "$loaded_env_values[$li]"
-                set -a env_unsets -u $loaded_env_names[$li]
-            else
-                set -a env_sets "$loaded_env_names[$li]=$loaded_env_values[$li]"
-            end
-            set li (math $li + 1)
-        end
-        # `env` requires all -u flags before any NAME=VALUE assignments.
-        set -l env_args $env_unsets $env_sets
-        _yolo_print_cmd env $env_args -- $command_args
+        set -l env_args (_yolo_build_env_args)
         if test (count $env_args) -gt 0
+            _yolo_print_cmd env $env_args -- $command_args
             env $env_args $command_args
         else
+            _yolo_print_cmd $command_args
             $command_args
         end
         set -l ret $status
-        set -e _yolo_extra_env
-        set -e _yolo_loaded_env_names
-        set -e _yolo_loaded_env_values
+        _yolo_cleanup
         return $ret
     end
 
@@ -559,31 +561,23 @@ function yolo --description "Run a command in a sandbox"
         case Linux
             if not command -q bwrap
                 echo "bwrap is not installed or not on PATH" >&2
-                set -e _yolo_extra_env
-                set -e _yolo_loaded_env_names
-                set -e _yolo_loaded_env_values
+                _yolo_cleanup
                 return 1
             end
             _yolo_bwrap $ro_paths -- $rw_paths -- $command_args
         case Darwin
             if not command -q sandbox-exec
                 echo "sandbox-exec is not available" >&2
-                set -e _yolo_extra_env
-                set -e _yolo_loaded_env_names
-                set -e _yolo_loaded_env_values
+                _yolo_cleanup
                 return 1
             end
             _yolo_sandbox_exec $ro_paths -- $rw_paths -- $command_args
         case '*'
             echo "unsupported OS: $os" >&2
-            set -e _yolo_extra_env
-            set -e _yolo_loaded_env_names
-            set -e _yolo_loaded_env_values
+            _yolo_cleanup
             return 1
     end
     set -l ret $status
-    set -e _yolo_extra_env
-    set -e _yolo_loaded_env_names
-    set -e _yolo_loaded_env_values
+    _yolo_cleanup
     return $ret
 end
