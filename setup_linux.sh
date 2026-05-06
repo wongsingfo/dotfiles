@@ -14,10 +14,6 @@ Installs tools and configurations based on the dotfiles repository.
 
 Options:
   --help            Show this help message
-  --install-rust    Install Rust (equivalent to setting INSTALL_RUST=true)
-
-Environment Variables:
-  INSTALL_RUST      Set to "true" to install Rust language support
 EOF
     exit 0
 }
@@ -26,7 +22,6 @@ EOF
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --help) show_help ;;
-        --install-rust) INSTALL_RUST=true ;;
         *) echo "Unknown parameter passed: $1"; echo "Use --help for usage information."; exit 1 ;;
     esac
     shift
@@ -48,7 +43,7 @@ if [ -f /etc/debian_version ]; then
     echo "[system] Installing system packages..."
     # Packages that may not exist on older Debian; install individually to tolerate missing ones
     APT_PACKAGES=(
-        bubblewrap cmake curl gcc g++ git iproute2 jq
+        bubblewrap ca-certificates cmake curl gcc g++ git gnupg iproute2 jq
         libevent-dev libncurses5-dev libncursesw5-dev
         make python3 python3-pip python3-venv ripgrep rsync
         software-properties-common stow sudo ssh sshpass
@@ -97,6 +92,26 @@ if [ -f /etc/debian_version ]; then
         fi
     else
         echo "[fish] Fish is already installed."
+    fi
+
+    # Install Docker
+    if ! command -v docker &> /dev/null; then
+        echo "[docker] Installing Docker from official apt repo..."
+        . /etc/os-release
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL "https://download.docker.com/linux/${ID}/gpg" \
+            | sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${ID} ${VERSION_CODENAME} stable" \
+            | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        if ! id -nG "$USER" | grep -qw docker; then
+            echo "[docker] Adding $USER to docker group (re-login required to take effect)..."
+            sudo usermod -aG docker "$USER"
+        fi
+    else
+        echo "[docker] Docker is already installed."
     fi
 else
     echo "[system] Warning: Not on Debian/Ubuntu. Skipping apt package installation."
@@ -193,17 +208,13 @@ else
 fi
 
 # Install Rust (rustup)
-if [[ "$INSTALL_RUST" == "true" ]]; then
-    if ! command -v rustup &> /dev/null; then
-        echo "[rust] Installing Rust..."
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        source "$HOME/.cargo/env"
-        echo "[rust] Rust installed."
-    else
-        echo "[rust] Rust is already installed."
-    fi
+if ! command -v rustup &> /dev/null; then
+    echo "[rust] Installing Rust..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source "$HOME/.cargo/env"
+    echo "[rust] Rust installed."
 else
-    echo "[rust] Skipping Rust installation (INSTALL_RUST not set to true)."
+    echo "[rust] Rust is already installed."
 fi
 
 # Stow Dotfiles
