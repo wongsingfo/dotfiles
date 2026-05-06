@@ -1,10 +1,69 @@
--- Use nvim's built-in treesitter. nvim 0.12 bundles parsers for: c, lua,
--- markdown, markdown_inline, query, vim, vimdoc. For any other filetype,
--- vim.treesitter.language.get_lang() returns the canonical parser name and
--- vim.treesitter.start() activates it if the parser is installed; otherwise
--- pcall catches the error and the buffer falls back to regex highlighting.
--- Additional parsers can be installed with:
---   nvim --headless -c "lua vim.treesitter.language.add('python')" +q
+-- Use nvim's built-in treesitter.  nvim 0.12 bundles parsers for: c, lua,
+-- markdown, markdown_inline, query, vim, vimdoc.
+-- Additional parsers listed in ts_ensure_installed are compiled from the
+-- official tree-sitter grammar repos on startup (pre-generated C files; gcc
+-- only, no tree-sitter CLI needed).  Or use :TSCompile {lang} at any time.
+local ts_ensure_installed = {
+	"python",
+}
+
+-- Single shared compile function used by both ensure_installed and :TSCompile.
+local function ts_compile_one(lang)
+	local repo = "https://github.com/tree-sitter/tree-sitter-" .. lang .. ".git"
+	local tmp = vim.fn.tempname() .. "_ts_" .. lang
+	local parser_dir = vim.fn.stdpath("data") .. "/site/parser"
+	local queries_dir = vim.fn.stdpath("data") .. "/site/queries/" .. lang
+	local queries_url = "https://raw.githubusercontent.com/neovim-treesitter/nvim-treesitter/main/queries/" .. lang .. "/"
+
+	---@diagnostic disable-next-line: undefined-field
+	vim.system({
+		"sh", "-c",
+		"git clone -q --depth 1 " .. repo .. " " .. tmp
+		.. " && cd " .. tmp .. "/src"
+		.. " && mkdir -p " .. parser_dir .. " " .. queries_dir
+		.. " && (gcc -shared -fPIC -o " .. parser_dir .. "/" .. lang .. ".so parser.c scanner.c -I. 2>/dev/null"
+		.. "  || gcc -shared -fPIC -o " .. parser_dir .. "/" .. lang .. ".so parser.c -I. 2>/dev/null)"
+		.. " && rm -rf " .. tmp,
+	}, nil, function(res)
+		vim.schedule(function()
+			if res.code == 0 then
+				-- Fetch query files from neovim-treesitter runtime.
+				---@diagnostic disable-next-line: undefined-field
+				vim.system({
+					"sh", "-c",
+					"for f in highlights folds injections; do"
+					.. " curl -fsSL " .. queries_url .. "${f}.scm"
+					.. " -o " .. queries_dir .. "/${f}.scm 2>/dev/null;"
+					.. " done",
+				}, nil, function(res2)
+					vim.schedule(function()
+						for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+							if vim.bo[buf].filetype == lang then
+								pcall(vim.treesitter.start, buf, lang)
+							end
+						end
+						vim.notify("Treesitter parser compiled: " .. lang, vim.log.levels.INFO)
+					end)
+				end)
+			else
+				vim.notify("TSCompile failed for " .. lang, vim.log.levels.ERROR)
+			end
+		end)
+	end)
+end
+
+vim.api.nvim_create_user_command("TSCompile", function(opts)
+	ts_compile_one(opts.args:lower())
+end, { nargs = 1, desc = "Compile a treesitter parser from official grammar repo" })
+
+-- On startup, compile any missing parsers from ts_ensure_installed.
+for _, lang in ipairs(ts_ensure_installed) do
+	local installed = pcall(vim.treesitter.language.inspect, lang)
+	if not installed then
+		ts_compile_one(lang)
+	end
+end
+
 vim.api.nvim_create_autocmd("FileType", {
 	group = vim.api.nvim_create_augroup("TreesitterEnable", { clear = true }),
 	pattern = "*",
@@ -14,9 +73,15 @@ vim.api.nvim_create_autocmd("FileType", {
 			return
 		end
 		local lang = vim.treesitter.language.get_lang(ft)
-		if lang then
-			pcall(vim.treesitter.start, ev.buf, lang)
+		if not lang then
+			return
 		end
+		-- Only start if highlight queries exist; without them treesitter
+		-- highlighting produces nothing and the buffer goes dark.
+		if #vim.api.nvim_get_runtime_file("queries/" .. lang .. "/highlights.scm", false) == 0 then
+			return
+		end
+		pcall(vim.treesitter.start, ev.buf, lang)
 	end,
 })
 
@@ -26,32 +91,43 @@ vim.api.nvim_create_autocmd("FileType", {
 --   v   - expand to parent node (in visual mode, when IS active)
 --   u   - shrink to previous node (in visual mode, when IS active)
 local is_state = {} -- { [bufnr] = { node = tsnode, stack = { tsnode, ... } } }
-local is_updating = false
 
 vim.api.nvim_create_autocmd("ModeChanged", {
 	group = vim.api.nvim_create_augroup("ISClear", { clear = true }),
 	pattern = "[vV\x16]*:*",
 	callback = function()
-		if is_updating then
-			return
-		end
 		is_state[vim.api.nvim_get_current_buf()] = nil
 	end,
 })
 
--- Select a node range by leaving any visual mode, moving to end,
--- entering visual, then moving to start.
+-- Clamp row to valid buffer lines.
+local function clamp_row(r0)
+	return math.max(1, math.min(r0 + 1, vim.api.nvim_buf_line_count(0)))
+end
+
+-- Visually select the 0-indexed [sr,sc) -> [er,ec) range.
 local function select_range(sr, sc, er, ec)
-	local ec_anchored = ec > 0 and (ec - 1) or ec
-	local last_line = vim.api.nvim_buf_line_count(0)
-	local end_row = math.min(er + 1, last_line)
-	local start_row = math.min(sr + 1, last_line)
-	is_updating = true
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "nx", false)
-	vim.api.nvim_win_set_cursor(0, { end_row, ec_anchored })
-	vim.cmd("normal! v")
-	vim.api.nvim_win_set_cursor(0, { start_row, sc })
-	is_updating = false
+	local end_c = ec > 0 and (ec - 1) or ec
+	local end_r = clamp_row(er)
+	local start_r = clamp_row(sr)
+
+	-- Already in visual mode (expand/shrink): swap anchor with o, then
+	-- move cursor so the selection stays within the visual mode without
+	-- leaving and re-entering (which would trigger ModeChanged).
+	local m = vim.api.nvim_get_mode().mode
+	local in_visual = m == "v" or m == "V" or m == "\22"
+
+	if in_visual then
+		-- Move to one end; o swaps cursor<->anchor; move to the other end.
+		vim.api.nvim_win_set_cursor(0, { end_r, end_c })
+		vim.cmd("normal! o")
+		vim.api.nvim_win_set_cursor(0, { start_r, sc })
+	else
+		-- Normal mode (init): anchor at end, enter visual, move to start.
+		vim.api.nvim_win_set_cursor(0, { end_r, end_c })
+		vim.cmd("normal! v")
+		vim.api.nvim_win_set_cursor(0, { start_r, sc })
+	end
 end
 
 local function init_selection()

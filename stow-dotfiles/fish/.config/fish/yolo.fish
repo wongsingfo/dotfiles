@@ -158,7 +158,12 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     # Git/SSH state (ro)
-    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh
+    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish
+
+    # Developer toolchains (ro) — pyenv, uv-managed Pythons, user pip installs,
+    # cargo, bun, micromamba. Required so shebangs, venv symlinks, and pre-commit
+    # shims resolve inside the sandbox.
+    _bwrap_ro $HOME/.pyenv $HOME/.local $HOME/.cargo $HOME/.bun $HOME/micromamba
 
     # X auth cookie (ro)
     if set -q XAUTHORITY; and test -e "$XAUTHORITY"
