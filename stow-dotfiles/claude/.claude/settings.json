@@ -1,26 +1,5 @@
 {
   "includeCoAuthoredBy": false,
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "superpowers-marketplace": {
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers-marketplace"
-      }
-    }
-  },
-  "skipWebFetchPreflight": true,
-  "awaySummaryEnabled": false,
-  "skipDangerousModePermissionPrompt": true,
-  "mcpServers": {
-    "tavily-remote-mcp": {
-      "type": "http",
-      "url": "https://mcp.tavily.com/mcp/"
-    }
-  },
-  "preferredNotifChannel": "terminal_bell",
   "hooks": {
     "Stop": [
       {
@@ -32,5 +11,33 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "codex@openai-codex": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "skipWebFetchPreflight": true,
+  "awaySummaryEnabled": false,
+  "skipDangerousModePermissionPrompt": true,
+  "preferredNotifChannel": "terminal_bell",
+  "mcpServers": {
+    "tavily-remote-mcp": {
+      "type": "http",
+      "url": "https://mcp.tavily.com/mcp/"
+    }
   }
 }
