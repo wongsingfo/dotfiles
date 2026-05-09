@@ -4,3 +4,4 @@ stow-dotfiles/fish/.config/fish/.env
 /.claude
 .DS_Store
 nvim.log
+.nvimlog

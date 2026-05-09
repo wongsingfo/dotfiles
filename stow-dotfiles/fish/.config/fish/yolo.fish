@@ -46,14 +46,17 @@ function _yolo_build_env_args --description "Emit env(1) args from _yolo_loaded_
     # `env` requires all -u flags before any NAME=VALUE assignments.
     set -l unsets
     set -l sets
-    set -l li 1
-    while test $li -le (count $_yolo_loaded_env_names)
-        if test -z "$_yolo_loaded_env_values[$li]"
-            set -a unsets -u $_yolo_loaded_env_names[$li]
-        else
-            set -a sets "$_yolo_loaded_env_names[$li]=$_yolo_loaded_env_values[$li]"
+    set -l count (count $_yolo_loaded_env_names)
+    if test $count -gt 0
+        for i in (seq $count)
+            set -l name $_yolo_loaded_env_names[$i]
+            set -l value $_yolo_loaded_env_values[$i]
+            if test -z "$value"
+                set -a unsets -u $name
+            else
+                set -a sets "$name=$value"
+            end
         end
-        set li (math $li + 1)
     end
     for arg in $unsets $sets
         echo $arg
@@ -66,12 +69,9 @@ function _yolo_cleanup --description "Clear yolo's transient global env state"
     set -e _yolo_loaded_env_values
 end
 
-function _yolo_bwrap --description "Run command in bwrap sandbox"
+function _yolo_parse_args --description "Parse argv into ro_paths, rw_paths, command_args" --no-scope-shadowing
     # argv: ro_paths... -- rw_paths... -- command_args...
-    set -l ro_paths
-    set -l rw_paths
-    set -l command_args
-
+    # Sets variables in caller scope: ro_paths, rw_paths, command_args
     set -l section ro
     for arg in $argv
         if test "$arg" = --
@@ -91,9 +91,18 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
                 set -a command_args $arg
         end
     end
+end
+
+function _yolo_bwrap --description "Run command in bwrap sandbox"
+    # argv: ro_paths... -- rw_paths... -- command_args...
+    set -l ro_paths
+    set -l rw_paths
+    set -l command_args
+    _yolo_parse_args $argv
 
     set -l workdir (pwd -P)
     set -l sys_prefixes /usr /bin /lib /lib64 /etc
+    set -l uid (id -u)
 
     set -l bwrap_args \
         --proc /proc \
@@ -114,8 +123,9 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     # Claude Code tmpdir (rw, must come after --tmpfs /tmp)
-    if test -d /tmp/claude-(id -u)
-        set -a bwrap_args --bind /tmp/claude-(id -u) /tmp/claude-(id -u)
+    set -l claude_tmpdir /tmp/claude-$uid
+    if test -d $claude_tmpdir
+        set -a bwrap_args --bind $claude_tmpdir $claude_tmpdir
     end
 
     # Wayland display socket
@@ -249,14 +259,17 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     # Env variables from --loadenv / --setenv NAME=VALUE (empty value = unset)
-    set -l li 1
-    while test $li -le (count $_yolo_loaded_env_names)
-        if test -z "$_yolo_loaded_env_values[$li]"
-            set -a bwrap_args --unsetenv $_yolo_loaded_env_names[$li]
-        else
-            set -a bwrap_args --setenv $_yolo_loaded_env_names[$li] $_yolo_loaded_env_values[$li]
+    set -l count (count $_yolo_loaded_env_names)
+    if test $count -gt 0
+        for i in (seq $count)
+            set -l name $_yolo_loaded_env_names[$i]
+            set -l value $_yolo_loaded_env_values[$i]
+            if test -z "$value"
+                set -a bwrap_args --unsetenv $name
+            else
+                set -a bwrap_args --setenv $name $value
+            end
         end
-        set li (math $li + 1)
     end
 
     functions -e _bwrap_ro
@@ -269,25 +282,7 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
     set -l ro_paths
     set -l rw_paths
     set -l command_args
-    set -l section ro
-    for arg in $argv
-        if test "$arg" = --
-            if test $section = ro
-                set section rw
-            else
-                set section cmd
-            end
-            continue
-        end
-        switch $section
-            case ro
-                set -a ro_paths $arg
-            case rw
-                set -a rw_paths $arg
-            case cmd
-                set -a command_args $arg
-        end
-    end
+    _yolo_parse_args $argv
 
     set -l workdir (pwd -P)
 
@@ -347,6 +342,28 @@ function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
         sandbox-exec -p $profile $command_args
     end
     return $status
+end
+
+function _yolo_list_env_groups --description "List all env groups from .env.toml"
+    # argv[1] = toml file path
+    set -l toml_file $argv[1]
+    if not test -f "$toml_file"
+        echo "yolo: env file not found: $toml_file" >&2
+        return 1
+    end
+    while read -l line
+        # Strip leading/trailing whitespace
+        set line (string trim -- "$line")
+        # Skip empty lines and comments
+        if test -z "$line"; or string match -q '#*' "$line"
+            continue
+        end
+        # Check for section header
+        if string match -rq '^\[(.+)\]$' "$line"
+            set -l section (string match -r '^\[(.+)\]$' "$line")[2]
+            echo "$section"
+        end
+    end <"$toml_file"
 end
 
 function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALUE pairs for a group"
@@ -410,6 +427,7 @@ function yolo --description "Run a command in a sandbox"
                 echo >&2
                 echo "Options:" >&2
                 echo "  --help, -h          Show this help message" >&2
+                echo "  --list              List all available env groups in .env.toml" >&2
                 echo "  --setenv NAME       Pass NAME from parent env into the sandbox" >&2
                 echo "  --setenv NAME=VAL   Set NAME to VAL in the sandbox" >&2
                 echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
@@ -425,6 +443,16 @@ function yolo --description "Run a command in a sandbox"
                 echo "  yolo claude" >&2
                 echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
                 echo "  yolo --loadenv openai claude" >&2
+                return 0
+            case --list
+                set -l groups (_yolo_list_env_groups "$env_file")
+                if test $status -eq 0
+                    echo "Available env groups in $env_file:" >&2
+                    echo >&2
+                    for group in $groups
+                        echo "  - $group" >&2
+                    end
+                end
                 return 0
             case --setenv
                 set i (math $i + 1)

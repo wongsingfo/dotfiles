@@ -18,3 +18,5 @@
 	tool = nvim
 [mergetool "nvim"]
 	cmd = nvim -d \"$MERGED\" \"$LOCAL\" \"$REMOTE\" -c \"wincmd J\"
+[safe]
+	directory = *

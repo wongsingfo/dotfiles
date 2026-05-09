@@ -120,7 +120,7 @@ if status is-interactive
 
 	set -Ux PYENV_ROOT $HOME/.pyenv
 	test -d $PYENV_ROOT/bin; and set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
-	pyenv init - fish | source
+	which pyenv >/dev/null 2>&1; and pyenv init - fish | source
 
 	# bun
 	set --export BUN_INSTALL "$HOME/.bun"
