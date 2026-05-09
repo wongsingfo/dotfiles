@@ -69,6 +69,114 @@ function _yolo_cleanup --description "Clear yolo's transient global env state"
     set -e _yolo_loaded_env_values
 end
 
+function _yolo_usage --description "Print yolo usage"
+    set -l env_file $argv[1]
+
+    echo "usage: yolo [options] <command> [args...]" >&2
+    if not contains -- --verbose $argv
+        return
+    end
+
+    echo >&2
+    echo "Run a command inside a sandboxed environment (bwrap on Linux, sandbox-exec on macOS)." >&2
+    echo >&2
+    echo "Options:" >&2
+    echo "  --help, -h          Show this help message" >&2
+    echo "  --list              List all available env groups in .env.toml" >&2
+    echo "  --setenv NAME       Pass NAME from parent env into the sandbox" >&2
+    echo "  --setenv NAME=VAL   Set NAME to VAL in the sandbox" >&2
+    echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
+    echo "                      (can be specified multiple times)" >&2
+    echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
+    echo "                      (entries with empty value unset the variable)" >&2
+    echo "                      (can be specified multiple times)" >&2
+    echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
+    echo >&2
+    echo "Environment file: $env_file" >&2
+    echo >&2
+    echo "Examples:" >&2
+    echo "  yolo claude" >&2
+    echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
+    echo "  yolo --loadenv openai claude" >&2
+end
+
+function _yolo_add_setenv_arg --description "Apply one --setenv argument to parser state" --no-scope-shadowing
+    set -l setenv_arg $argv[1]
+    if string match -q '*=*' -- $setenv_arg
+        set -l name (string replace -r '=.*' '' -- $setenv_arg)
+        set -l value (string replace -r '^[^=]*=' '' -- $setenv_arg)
+        set -a loaded_env_names $name
+        set -a loaded_env_values "$value"
+    else
+        set -a extra_env_names $setenv_arg
+    end
+end
+
+function _yolo_add_loadenv_group --description "Load one env group into parser state" --no-scope-shadowing
+    set -l env_file $argv[1]
+    set -l group $argv[2]
+    set -l pairs (_yolo_load_env_group "$env_file" "$group")
+    if test $status -ne 0
+        return 1
+    end
+    if test (count $pairs) -eq 0
+        echo "yolo: no env variables found in group [$group]" >&2
+        return 1
+    end
+    for pair in $pairs
+        if string match -rq '^([^=]+)=(.*)$' -- "$pair"
+            set -l m (string match -r '^([^=]+)=(.*)$' -- "$pair")
+            set -a loaded_env_names $m[2]
+            set -a loaded_env_values "$m[3]"
+        end
+    end
+end
+
+function _yolo_tool_rw_paths --description "Emit tool-specific writable state paths"
+    switch $argv[1]
+        case claude
+            for p in $HOME/.claude $HOME/.claude.json
+                test -e "$p"; and echo "$p"
+            end
+        case codex
+            for p in $HOME/.codex
+                test -e "$p"; and echo "$p"
+            end
+    end
+end
+
+function _yolo_run_passthrough --description "Run command without sandbox, preserving env mutations"
+    set -l env_args (_yolo_build_env_args)
+    if test (count $env_args) -gt 0
+        _yolo_print_cmd env $env_args -- $argv
+        env $env_args $argv
+    else
+        _yolo_print_cmd $argv
+        $argv
+    end
+end
+
+function _yolo_dispatch --description "Run the OS-specific sandbox backend"
+    set -l os (uname -s)
+    switch $os
+        case Linux
+            if not command -q bwrap
+                echo "bwrap is not installed or not on PATH" >&2
+                return 1
+            end
+            _yolo_bwrap $argv
+        case Darwin
+            if not command -q sandbox-exec
+                echo "sandbox-exec is not available" >&2
+                return 1
+            end
+            _yolo_sandbox_exec $argv
+        case '*'
+            echo "unsupported OS: $os" >&2
+            return 1
+    end
+end
+
 function _yolo_parse_args --description "Parse argv into ro_paths, rw_paths, command_args" --no-scope-shadowing
     # argv: ro_paths... -- rw_paths... -- command_args...
     # Sets variables in caller scope: ro_paths, rw_paths, command_args
@@ -142,6 +250,14 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
             if test -e $p; and not contains -- $p $ro_seen
                 set -a ro_seen $p
                 set -a bwrap_args --ro-bind $p $p
+            end
+        end
+    end
+
+    function _bwrap_setenv_from_parent --no-scope-shadowing
+        for env_name in $argv
+            if set -q $env_name
+                set -a bwrap_args --setenv $env_name $$env_name
             end
         end
     end
@@ -240,23 +356,15 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         set -a bwrap_args --setenv GIT_SSH_COMMAND "ssh -F /dev/null"
     end
 
-    for env_name in \
+    _bwrap_setenv_from_parent \
         DISPLAY WAYLAND_DISPLAY XAUTHORITY XDG_RUNTIME_DIR \
         TERM COLORTERM LANG LC_ALL NO_COLOR \
         HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
         http_proxy https_proxy all_proxy no_proxy \
         GIT_SSH_COMMAND
-        if set -q $env_name
-            set -a bwrap_args --setenv $env_name $$env_name
-        end
-    end
 
     # Extra env variables from --setenv flags
-    for env_name in $_yolo_extra_env
-        if set -q $env_name
-            set -a bwrap_args --setenv $env_name $$env_name
-        end
-    end
+    _bwrap_setenv_from_parent $_yolo_extra_env
 
     # Env variables from --loadenv / --setenv NAME=VALUE (empty value = unset)
     set -l count (count $_yolo_loaded_env_names)
@@ -272,7 +380,7 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         end
     end
 
-    functions -e _bwrap_ro
+    functions -e _bwrap_ro _bwrap_setenv_from_parent
     _yolo_print_cmd bwrap $bwrap_args -- $command_args
     bwrap $bwrap_args $command_args
 end
@@ -421,28 +529,7 @@ function yolo --description "Run a command in a sandbox"
     while test $i -le (count $argv)
         switch $argv[$i]
             case --help -h
-                echo "usage: yolo [options] <command> [args...]" >&2
-                echo >&2
-                echo "Run a command inside a sandboxed environment (bwrap on Linux, sandbox-exec on macOS)." >&2
-                echo >&2
-                echo "Options:" >&2
-                echo "  --help, -h          Show this help message" >&2
-                echo "  --list              List all available env groups in .env.toml" >&2
-                echo "  --setenv NAME       Pass NAME from parent env into the sandbox" >&2
-                echo "  --setenv NAME=VAL   Set NAME to VAL in the sandbox" >&2
-                echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
-                echo "                      (can be specified multiple times)" >&2
-                echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
-                echo "                      (entries with empty value unset the variable)" >&2
-                echo "                      (can be specified multiple times)" >&2
-                echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
-                echo >&2
-                echo "Environment file: $env_file" >&2
-                echo >&2
-                echo "Examples:" >&2
-                echo "  yolo claude" >&2
-                echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
-                echo "  yolo --loadenv openai claude" >&2
+                _yolo_usage "$env_file" --verbose
                 return 0
             case --list
                 set -l groups (_yolo_list_env_groups "$env_file")
@@ -460,37 +547,15 @@ function yolo --description "Run a command in a sandbox"
                     echo "yolo: --setenv requires an argument" >&2
                     return 1
                 end
-                set -l setenv_arg $argv[$i]
-                if string match -q '*=*' -- $setenv_arg
-                    set -l name (string replace -r '=.*' '' -- $setenv_arg)
-                    set -l value (string replace -r '^[^=]*=' '' -- $setenv_arg)
-                    set -a loaded_env_names $name
-                    set -a loaded_env_values "$value"
-                else
-                    set -a extra_env_names $setenv_arg
-                end
+                _yolo_add_setenv_arg $argv[$i]
             case --loadenv
                 set i (math $i + 1)
                 if test $i -gt (count $argv)
                     echo "yolo: --loadenv requires a group name" >&2
                     return 1
                 end
-                set -l group $argv[$i]
-                set -l pairs (_yolo_load_env_group "$env_file" "$group")
-                if test $status -ne 0
-                    return 1
-                end
-                if test (count $pairs) -eq 0
-                    echo "yolo: no env variables found in group [$group]" >&2
-                    return 1
-                end
-                for pair in $pairs
-                    if string match -rq '^([^=]+)=(.*)$' -- "$pair"
-                        set -l m (string match -r '^([^=]+)=(.*)$' -- "$pair")
-                        set -a loaded_env_names $m[2]
-                        set -a loaded_env_values "$m[3]"
-                    end
-                end
+                _yolo_add_loadenv_group "$env_file" $argv[$i]
+                or return 1
             case --yolo
                 set passthrough true
             case '*'
@@ -502,12 +567,12 @@ function yolo --description "Run a command in a sandbox"
     end
 
     if test (count $positional) -eq 0
-        echo "usage: yolo [options] <command> [args...]" >&2
+        _yolo_usage "$env_file"
         return 1
     end
 
     set -l original_command $positional[1]
-    set -l argv $positional[2..-1]
+    set -l command_argv $positional[2..-1]
 
     # Resolve command path
     set -l original_path
@@ -535,22 +600,7 @@ function yolo --description "Run a command in a sandbox"
     # Collect ro paths (command binary and its resolved path)
     set -l ro_paths $original_path $real_path
 
-    # Collect rw paths (tool-specific state)
-    set -l rw_paths
-    switch $tool_name
-        case claude
-            for p in $HOME/.claude $HOME/.claude.json
-                if test -e $p
-                    set -a rw_paths $p
-                end
-            end
-        case codex
-            for p in $HOME/.codex
-                if test -e $p
-                    set -a rw_paths $p
-                end
-            end
-    end
+    set -l rw_paths (_yolo_tool_rw_paths $tool_name)
 
     # Build command with tool-specific flags
     set -l command_args $original_path
@@ -558,10 +608,9 @@ function yolo --description "Run a command in a sandbox"
         case codex
             set -a command_args --dangerously-bypass-approvals-and-sandbox
         case claude
-            set -l joined_argv (string join -- ' ' $argv)
             set -a command_args --permission-mode bypassPermissions
     end
-    set -a command_args $argv
+    set -a command_args $command_argv
 
     # Export extra env for sandbox backends
     set -g _yolo_extra_env $extra_env_names
@@ -570,41 +619,13 @@ function yolo --description "Run a command in a sandbox"
 
     # --yolo: skip sandbox, only apply env mutations.
     if $passthrough
-        set -l env_args (_yolo_build_env_args)
-        if test (count $env_args) -gt 0
-            _yolo_print_cmd env $env_args -- $command_args
-            env $env_args $command_args
-        else
-            _yolo_print_cmd $command_args
-            $command_args
-        end
+        _yolo_run_passthrough $command_args
         set -l ret $status
         _yolo_cleanup
         return $ret
     end
 
-    # Dispatch to OS-specific backend
-    set -l os (uname -s)
-    switch $os
-        case Linux
-            if not command -q bwrap
-                echo "bwrap is not installed or not on PATH" >&2
-                _yolo_cleanup
-                return 1
-            end
-            _yolo_bwrap $ro_paths -- $rw_paths -- $command_args
-        case Darwin
-            if not command -q sandbox-exec
-                echo "sandbox-exec is not available" >&2
-                _yolo_cleanup
-                return 1
-            end
-            _yolo_sandbox_exec $ro_paths -- $rw_paths -- $command_args
-        case '*'
-            echo "unsupported OS: $os" >&2
-            _yolo_cleanup
-            return 1
-    end
+    _yolo_dispatch $ro_paths -- $rw_paths -- $command_args
     set -l ret $status
     _yolo_cleanup
     return $ret
