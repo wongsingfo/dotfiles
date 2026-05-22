@@ -88,7 +88,7 @@ function _yolo_usage --description "Print yolo usage"
     echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
     echo "                      (can be specified multiple times)" >&2
     echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
-    echo "                      (entries with empty value unset the variable)" >&2
+    echo "                      (empty env values unset variables; argv=[...] adds args)" >&2
     echo "                      (can be specified multiple times)" >&2
     echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
     echo >&2
@@ -98,6 +98,7 @@ function _yolo_usage --description "Print yolo usage"
     echo "  yolo claude" >&2
     echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
     echo "  yolo --loadenv openai claude" >&2
+    echo "  yolo --loadenv codex codex" >&2
 end
 
 function _yolo_add_setenv_arg --description "Apply one --setenv argument to parser state" --no-scope-shadowing
@@ -120,11 +121,14 @@ function _yolo_add_loadenv_group --description "Load one env group into parser s
         return 1
     end
     if test (count $pairs) -eq 0
-        echo "yolo: no env variables found in group [$group]" >&2
+        echo "yolo: no env variables or argv found in group [$group]" >&2
         return 1
     end
     for pair in $pairs
-        if string match -rq '^([^=]+)=(.*)$' -- "$pair"
+        if string match -rq '^__YOLO_ARGV__=(.*)$' -- "$pair"
+            set -l m (string match -r '^__YOLO_ARGV__=(.*)$' -- "$pair")
+            set -a loaded_argv "$m[2]"
+        else if string match -rq '^([^=]+)=(.*)$' -- "$pair"
             set -l m (string match -r '^([^=]+)=(.*)$' -- "$pair")
             set -a loaded_env_names $m[2]
             set -a loaded_env_values "$m[3]"
@@ -503,7 +507,26 @@ function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALU
         end
         if $in_group
             # Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
-            if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line"
+            if string match -rq '^argv\s*=\s*\[(.*)\]\s*$' "$line"
+                set -l m (string match -r '^argv\s*=\s*\[(.*)\]\s*$' "$line")
+                set -l argv_items (string split , -- $m[2])
+                for item in $argv_items
+                    set item (string trim -- "$item")
+                    if test -z "$item"
+                        continue
+                    end
+                    if string match -rq '^"(.*)"$' "$item"
+                        set -l value (string match -r '^"(.*)"$' "$item")[2]
+                        echo "__YOLO_ARGV__=$value"
+                    else if string match -rq "^'(.*)'\$" "$item"
+                        set -l value (string match -r "^'(.*)'\$" "$item")[2]
+                        echo "__YOLO_ARGV__=$value"
+                    else
+                        echo "yolo: argv entries must be quoted strings: $item" >&2
+                        return 1
+                    end
+                end
+            else if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line"
                 set -l m (string match -r '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line")
                 echo "$m[2]=$m[3]"
             else if string match -rq "^([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*'(.*)'\\s*\$" "$line"
@@ -522,6 +545,7 @@ function yolo --description "Run a command in a sandbox"
     set -l extra_env_names
     set -l loaded_env_names
     set -l loaded_env_values
+    set -l loaded_argv
     set -l passthrough false
     set -l positional
     set -l i 1
@@ -610,6 +634,7 @@ function yolo --description "Run a command in a sandbox"
         case claude
             set -a command_args --permission-mode bypassPermissions
     end
+    set -a command_args $loaded_argv
     set -a command_args $command_argv
 
     # Export extra env for sandbox backends
