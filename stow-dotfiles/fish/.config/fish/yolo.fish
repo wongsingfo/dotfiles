@@ -551,9 +551,37 @@ function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALU
         end
         if $in_group
             # Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
-            if string match -rq '^argv\s*=\s*\[(.*)\]\s*$' "$line"
-                set -l m (string match -r '^argv\s*=\s*\[(.*)\]\s*$' "$line")
-                set -l argv_items (_yolo_split_toml_array_items $m[2])
+            if string match -rq '^argv\s*=\s*\[(.*)$' "$line"
+                set -l m (string match -r '^argv\s*=\s*\[(.*)$' "$line")
+                set -l buf $m[2]
+                # If the closing ] is not on this line, keep reading
+                # subsequent lines until we find it. This supports the
+                # multi-line TOML array form:
+                #   argv = [
+                #       "--flag",
+                #       "value",
+                #   ]
+                if not string match -rq '\]\s*$' "$buf"
+                    while read -l cont
+                        set cont (string trim -- "$cont")
+                        # Skip blank lines and whole-line comments between items
+                        if test -z "$cont"; or string match -q '#*' "$cont"
+                            continue
+                        end
+                        if string match -rq '^(.*)\]\s*$' "$cont"
+                            set -l cm (string match -r '^(.*)\]\s*$' "$cont")
+                            if test -n "$cm[2]"
+                                set buf "$buf,$cm[2]"
+                            end
+                            break
+                        else
+                            set buf "$buf,$cont"
+                        end
+                    end
+                else
+                    set buf (string replace -r '\]\s*$' '' -- "$buf")
+                end
+                set -l argv_items (_yolo_split_toml_array_items "$buf")
                 for item in $argv_items
                     set item (string trim -- "$item")
                     if test -z "$item"
