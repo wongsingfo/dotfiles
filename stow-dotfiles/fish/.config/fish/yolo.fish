@@ -138,12 +138,8 @@ end
 
 function _yolo_tool_rw_paths --description "Emit tool-specific writable state paths"
     switch $argv[1]
-        case claude
-            for p in $HOME/.claude $HOME/.claude.json
-                test -e "$p"; and echo "$p"
-            end
-        case codex
-            for p in $HOME/.codex
+        case claude codex
+            for p in $HOME/.claude $HOME/.claude.json $HOME/.codex
                 test -e "$p"; and echo "$p"
             end
     end
@@ -478,6 +474,54 @@ function _yolo_list_env_groups --description "List all env groups from .env.toml
     end <"$toml_file"
 end
 
+function _yolo_split_toml_array_items --description "Split TOML array items without splitting inside quoted strings"
+    set -l raw $argv[1]
+    set -l current
+    set -l quote
+    set -l escaped false
+    set -l len (string length -- "$raw")
+
+    if test $len -eq 0
+        return 0
+    end
+
+    for i in (seq $len)
+        set -l ch (string sub -s $i -l 1 -- "$raw")
+
+        if test "$escaped" = true
+            set current "$current$ch"
+            set escaped false
+            continue
+        end
+
+        if test "$quote" = '"'; and test "$ch" = "\\"
+            set current "$current$ch"
+            set escaped true
+            continue
+        end
+
+        if test -n "$quote"
+            if test "$ch" = "$quote"
+                set quote
+            end
+            set current "$current$ch"
+            continue
+        end
+
+        if test "$ch" = '"'; or test "$ch" = "'"
+            set quote "$ch"
+            set current "$current$ch"
+        else if test "$ch" = ,
+            echo "$current"
+            set current
+        else
+            set current "$current$ch"
+        end
+    end
+
+    echo "$current"
+end
+
 function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALUE pairs for a group"
     # argv[1] = toml file path, argv[2] = group name
     set -l toml_file $argv[1]
@@ -509,7 +553,7 @@ function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALU
             # Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
             if string match -rq '^argv\s*=\s*\[(.*)\]\s*$' "$line"
                 set -l m (string match -r '^argv\s*=\s*\[(.*)\]\s*$' "$line")
-                set -l argv_items (string split , -- $m[2])
+                set -l argv_items (_yolo_split_toml_array_items $m[2])
                 for item in $argv_items
                     set item (string trim -- "$item")
                     if test -z "$item"
