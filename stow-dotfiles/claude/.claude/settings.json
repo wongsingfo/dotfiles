@@ -1,17 +1,5 @@
 {
   "includeCoAuthoredBy": false,
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -n \"$TMUX_PANE\" ] && printf '\\a' > \"$(tmux display-message -pt \"$TMUX_PANE\" '#{pane_tty}' 2>/dev/null)\" 2>/dev/null || printf '\\a' > /dev/tty 2>/dev/null"
-          }
-        ]
-      }
-    ]
-  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "codex@openai-codex": true
