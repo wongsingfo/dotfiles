@@ -88,7 +88,7 @@ function _yolo_usage --description "Print yolo usage"
     echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
     echo "                      (can be specified multiple times)" >&2
     echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
-    echo "                      (entries with empty value unset the variable)" >&2
+    echo "                      (empty env values unset variables; argv=[...] adds args)" >&2
     echo "                      (can be specified multiple times)" >&2
     echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
     echo >&2
@@ -98,6 +98,7 @@ function _yolo_usage --description "Print yolo usage"
     echo "  yolo claude" >&2
     echo "  yolo --setenv MY_TOKEN --setenv DEBUG claude --print" >&2
     echo "  yolo --loadenv openai claude" >&2
+    echo "  yolo --loadenv codex codex" >&2
 end
 
 function _yolo_add_setenv_arg --description "Apply one --setenv argument to parser state" --no-scope-shadowing
@@ -120,11 +121,14 @@ function _yolo_add_loadenv_group --description "Load one env group into parser s
         return 1
     end
     if test (count $pairs) -eq 0
-        echo "yolo: no env variables found in group [$group]" >&2
+        echo "yolo: no env variables or argv found in group [$group]" >&2
         return 1
     end
     for pair in $pairs
-        if string match -rq '^([^=]+)=(.*)$' -- "$pair"
+        if string match -rq '^__YOLO_ARGV__=(.*)$' -- "$pair"
+            set -l m (string match -r '^__YOLO_ARGV__=(.*)$' -- "$pair")
+            set -a loaded_argv "$m[2]"
+        else if string match -rq '^([^=]+)=(.*)$' -- "$pair"
             set -l m (string match -r '^([^=]+)=(.*)$' -- "$pair")
             set -a loaded_env_names $m[2]
             set -a loaded_env_values "$m[3]"
@@ -134,12 +138,8 @@ end
 
 function _yolo_tool_rw_paths --description "Emit tool-specific writable state paths"
     switch $argv[1]
-        case claude
-            for p in $HOME/.claude $HOME/.claude.json
-                test -e "$p"; and echo "$p"
-            end
-        case codex
-            for p in $HOME/.codex
+        case claude codex
+            for p in $HOME/.claude $HOME/.claude.json $HOME/.codex
                 test -e "$p"; and echo "$p"
             end
     end
@@ -474,6 +474,54 @@ function _yolo_list_env_groups --description "List all env groups from .env.toml
     end <"$toml_file"
 end
 
+function _yolo_split_toml_array_items --description "Split TOML array items without splitting inside quoted strings"
+    set -l raw $argv[1]
+    set -l current
+    set -l quote
+    set -l escaped false
+    set -l len (string length -- "$raw")
+
+    if test $len -eq 0
+        return 0
+    end
+
+    for i in (seq $len)
+        set -l ch (string sub -s $i -l 1 -- "$raw")
+
+        if test "$escaped" = true
+            set current "$current$ch"
+            set escaped false
+            continue
+        end
+
+        if test "$quote" = '"'; and test "$ch" = "\\"
+            set current "$current$ch"
+            set escaped true
+            continue
+        end
+
+        if test -n "$quote"
+            if test "$ch" = "$quote"
+                set quote
+            end
+            set current "$current$ch"
+            continue
+        end
+
+        if test "$ch" = '"'; or test "$ch" = "'"
+            set quote "$ch"
+            set current "$current$ch"
+        else if test "$ch" = ,
+            echo "$current"
+            set current
+        else
+            set current "$current$ch"
+        end
+    end
+
+    echo "$current"
+end
+
 function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALUE pairs for a group"
     # argv[1] = toml file path, argv[2] = group name
     set -l toml_file $argv[1]
@@ -503,7 +551,54 @@ function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALU
         end
         if $in_group
             # Parse KEY = "VALUE" or KEY = 'VALUE' or KEY = VALUE
-            if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line"
+            if string match -rq '^argv\s*=\s*\[(.*)$' "$line"
+                set -l m (string match -r '^argv\s*=\s*\[(.*)$' "$line")
+                set -l buf $m[2]
+                # If the closing ] is not on this line, keep reading
+                # subsequent lines until we find it. This supports the
+                # multi-line TOML array form:
+                #   argv = [
+                #       "--flag",
+                #       "value",
+                #   ]
+                if not string match -rq '\]\s*$' "$buf"
+                    while read -l cont
+                        set cont (string trim -- "$cont")
+                        # Skip blank lines and whole-line comments between items
+                        if test -z "$cont"; or string match -q '#*' "$cont"
+                            continue
+                        end
+                        if string match -rq '^(.*)\]\s*$' "$cont"
+                            set -l cm (string match -r '^(.*)\]\s*$' "$cont")
+                            if test -n "$cm[2]"
+                                set buf "$buf,$cm[2]"
+                            end
+                            break
+                        else
+                            set buf "$buf,$cont"
+                        end
+                    end
+                else
+                    set buf (string replace -r '\]\s*$' '' -- "$buf")
+                end
+                set -l argv_items (_yolo_split_toml_array_items "$buf")
+                for item in $argv_items
+                    set item (string trim -- "$item")
+                    if test -z "$item"
+                        continue
+                    end
+                    if string match -rq '^"(.*)"$' "$item"
+                        set -l value (string match -r '^"(.*)"$' "$item")[2]
+                        echo "__YOLO_ARGV__=$value"
+                    else if string match -rq "^'(.*)'\$" "$item"
+                        set -l value (string match -r "^'(.*)'\$" "$item")[2]
+                        echo "__YOLO_ARGV__=$value"
+                    else
+                        echo "yolo: argv entries must be quoted strings: $item" >&2
+                        return 1
+                    end
+                end
+            else if string match -rq '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line"
                 set -l m (string match -r '^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"(.*)"$' "$line")
                 echo "$m[2]=$m[3]"
             else if string match -rq "^([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*'(.*)'\\s*\$" "$line"
@@ -522,6 +617,7 @@ function yolo --description "Run a command in a sandbox"
     set -l extra_env_names
     set -l loaded_env_names
     set -l loaded_env_values
+    set -l loaded_argv
     set -l passthrough false
     set -l positional
     set -l i 1
@@ -610,6 +706,7 @@ function yolo --description "Run a command in a sandbox"
         case claude
             set -a command_args --permission-mode bypassPermissions
     end
+    set -a command_args $loaded_argv
     set -a command_args $command_argv
 
     # Export extra env for sandbox backends
