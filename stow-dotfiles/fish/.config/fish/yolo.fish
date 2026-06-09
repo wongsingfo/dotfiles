@@ -308,7 +308,7 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     # Git/SSH state (ro)
-    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish
+    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish $HOME/.agents $HOME/.lark-cli
 
     # Developer toolchains (ro) — pyenv, uv-managed Pythons, user pip installs,
     # cargo, bun, micromamba. Required so shebangs, venv symlinks, and pre-commit
