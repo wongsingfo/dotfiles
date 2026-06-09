@@ -308,12 +308,12 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
     end
 
     # Git/SSH state (ro)
-    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish $HOME/.agents $HOME/.lark-cli
+    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish $HOME/.agents
 
     # Developer toolchains (ro) — pyenv, uv-managed Pythons, user pip installs,
     # cargo, bun, micromamba. Required so shebangs, venv symlinks, and pre-commit
     # shims resolve inside the sandbox.
-    _bwrap_ro $HOME/.pyenv $HOME/.local $HOME/.cargo $HOME/.bun $HOME/micromamba
+    _bwrap_ro $HOME/.pyenv $HOME/.cargo $HOME/.bun $HOME/micromamba
 
     # X auth cookie (ro)
     if set -q XAUTHORITY; and test -e "$XAUTHORITY"
@@ -331,9 +331,15 @@ function _yolo_bwrap --description "Run command in bwrap sandbox"
         set -a bwrap_args --bind "$git_worktree_dir" "$git_worktree_dir"
     end
 
-    # Cache + extra rw paths
+    # Cache + Lark CLI state + extra rw paths
     if test -e $HOME/.cache
         set -a bwrap_args --bind $HOME/.cache $HOME/.cache
+    end
+    if test -e $HOME/.local
+        set -a bwrap_args --bind $HOME/.local $HOME/.local
+    end
+    if test -e $HOME/.lark-cli
+        set -a bwrap_args --bind $HOME/.lark-cli $HOME/.lark-cli
     end
     for p in $rw_paths
         if test -e $p
