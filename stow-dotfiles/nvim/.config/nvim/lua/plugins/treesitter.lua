@@ -7,18 +7,27 @@ local ts_ensure_installed = {
 	"python",
 }
 
+-- Keep parser revisions aligned with nvim-treesitter's query collection.
+local ts_revisions = {
+	python = "v0.25.0",
+}
+
 -- Single shared compile function used by both ensure_installed and :TSCompile.
 local function ts_compile_one(lang)
 	local repo = "https://github.com/tree-sitter/tree-sitter-" .. lang .. ".git"
+	local revision = ts_revisions[lang]
+	local clone_revision = revision and (" --branch " .. revision) or ""
 	local tmp = vim.fn.tempname() .. "_ts_" .. lang
 	local parser_dir = vim.fn.stdpath("data") .. "/site/parser"
 	local queries_dir = vim.fn.stdpath("data") .. "/site/queries/" .. lang
-	local queries_url = "https://raw.githubusercontent.com/neovim-treesitter/nvim-treesitter/main/queries/" .. lang .. "/"
+	local queries_url = "https://raw.githubusercontent.com/nvim-treesitter/nvim-treesitter/main/runtime/queries/"
+		.. lang
+		.. "/"
 
 	---@diagnostic disable-next-line: undefined-field
 	vim.system({
 		"sh", "-c",
-		"git clone -q --depth 1 " .. repo .. " " .. tmp
+		"git clone -q --depth 1" .. clone_revision .. " " .. repo .. " " .. tmp
 		.. " && cd " .. tmp .. "/src"
 		.. " && mkdir -p " .. parser_dir .. " " .. queries_dir
 		.. " && (gcc -shared -fPIC -o " .. parser_dir .. "/" .. lang .. ".so parser.c scanner.c -I. 2>/dev/null"
@@ -59,7 +68,13 @@ end, { nargs = 1, desc = "Compile a treesitter parser from official grammar repo
 -- On startup, compile any missing parsers from ts_ensure_installed.
 for _, lang in ipairs(ts_ensure_installed) do
 	local installed = pcall(vim.treesitter.language.inspect, lang)
-	if not installed then
+	local has_highlights = #vim.api.nvim_get_runtime_file(
+		"queries/" .. lang .. "/highlights.scm", false
+	) > 0
+	local has_folds = #vim.api.nvim_get_runtime_file(
+		"queries/" .. lang .. "/folds.scm", false
+	) > 0
+	if not installed or not has_highlights or not has_folds then
 		ts_compile_one(lang)
 	end
 end

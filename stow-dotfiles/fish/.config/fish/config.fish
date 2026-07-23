@@ -53,15 +53,13 @@ function update_path
 end
 update_path
 
-set -gx MAMBA_EXE "$HOME/.local/bin/micromamba"
-set -gx MAMBA_ROOT_PREFIX "$HOME/micromamba"
-
-if test -f $MAMBA_EXE
-	$MAMBA_EXE shell hook --shell fish --root-prefix $MAMBA_ROOT_PREFIX | source
-	$MAMBA_EXE shell activate | source
+set -gx PIP_REQUIRE_VIRTUALENV true
+function pip
+	python -m pip $argv
 end
-
-# This overrides the prompt set by MAMBA_EXE.
+function pip3
+	python3 -m pip $argv
+end
 # `fish_config prompt choose` was added in fish 3.4; on older fish (e.g.
 # Debian buster ships 3.1.2) it falls back to launching the web config UI.
 set -l _fv (string split . -- $version)
@@ -117,10 +115,6 @@ if status is-interactive
 	end
 
 	source (dirname (status --current-filename))/yolo.fish
-
-	set -Ux PYENV_ROOT $HOME/.pyenv
-	test -d $PYENV_ROOT/bin; and set -U fish_user_paths $PYENV_ROOT/bin $fish_user_paths
-	which pyenv >/dev/null 2>&1; and pyenv init - fish | source
 
 	# bun
 	set --export BUN_INSTALL "$HOME/.bun"

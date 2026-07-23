@@ -1,7 +1,6 @@
 {
   "includeCoAuthoredBy": false,
-  "hooks": {
-  },
+  "hooks": {},
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "codex@openai-codex": true
