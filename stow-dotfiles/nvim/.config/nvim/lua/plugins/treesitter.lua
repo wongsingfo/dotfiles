@@ -199,6 +199,22 @@ vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.o.foldnestmax = 3
 vim.o.foldenable = false -- Disable folding at startup
 
+-- Work around Neovim #40290: the Treesitter OptionSet refresher can
+-- access stale buffers when plugins change window-local fold options.
+local version = vim.version()
+if version.major == 0 and version.minor == 12 and version.patch <= 4 then
+	local ok = pcall(require, "vim.treesitter._fold")
+	if ok then
+		local removed = {}
+		for _, autocmd in ipairs(vim.api.nvim_get_autocmds({ event = "OptionSet" })) do
+			if autocmd.desc == "Refresh treesitter folds" and not removed[autocmd.id] then
+				vim.api.nvim_del_autocmd(autocmd.id)
+				removed[autocmd.id] = true
+			end
+		end
+	end
+end
+
 -- -- Fix: cursor line getting cut off by the @operator highlight.
 -- local val = vim.api.nvim_get_hl(0, { name = "Normal" })
 -- val.bg = nil

@@ -57,6 +57,7 @@ local function setup_lsp()
 
 	-- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md
 	local servers = {
+		clangd = {},
 		gopls = {},
 		tinymist = {},
 		ty = {},
