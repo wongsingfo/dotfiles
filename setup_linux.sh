@@ -43,7 +43,7 @@ if [ -f /etc/debian_version ]; then
     echo "[system] Installing system packages..."
     # Packages that may not exist on older Debian; install individually to tolerate missing ones
     APT_PACKAGES=(
-        bubblewrap ca-certificates cmake curl gcc g++ git gnupg iproute2 jq
+        ca-certificates cmake curl gcc g++ git gnupg iproute2 jq
         libevent-dev libncurses5-dev libncursesw5-dev
         make python3 python3-pip python3-venv ripgrep rsync
         software-properties-common stow sudo ssh sshpass

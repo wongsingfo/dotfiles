@@ -1,5 +1,8 @@
 {
   "hooks": {},
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "enabledPlugins": {
     "codex@openai-codex": false
   },
@@ -11,5 +14,7 @@
       }
     }
   },
-  "preferredNotifChannel": "terminal_bell"
+  "skipWebFetchPreflight": true,
+  "preferredNotifChannel": "kitty",
+  "awaySummaryEnabled": false
 }

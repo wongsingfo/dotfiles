@@ -28,29 +28,15 @@ function _yolo_print_cmd --description "Pretty-print a command with one flag per
     echo "  $line" >&2
 end
 
-function _yolo_get_git_worktree_dir --description "Return git common dir if in a worktree with external git directory"
-    if not command -q git
-        return
-    end
-    if not git rev-parse --is-inside-work-tree >/dev/null 2>&1
-        return
-    end
-    set -l git_dir (git rev-parse --git-common-dir 2>/dev/null)
-    set -l workdir (pwd -P)
-    if test -n "$git_dir"; and test -d "$git_dir"; and not string match -q "$workdir/*" "$git_dir"
-        echo "$git_dir"
-    end
-end
-
-function _yolo_build_env_args --description "Emit env(1) args from _yolo_loaded_env_*; -u flags first, then NAME=VAL"
+function _yolo_build_env_args --description "Emit env(1) args from parser state" --no-scope-shadowing
     # `env` requires all -u flags before any NAME=VALUE assignments.
     set -l unsets
     set -l sets
-    set -l count (count $_yolo_loaded_env_names)
+    set -l count (count $loaded_env_names)
     if test $count -gt 0
         for i in (seq $count)
-            set -l name $_yolo_loaded_env_names[$i]
-            set -l value $_yolo_loaded_env_values[$i]
+            set -l name $loaded_env_names[$i]
+            set -l value $loaded_env_values[$i]
             if test -z "$value"
                 set -a unsets -u $name
             else
@@ -63,12 +49,6 @@ function _yolo_build_env_args --description "Emit env(1) args from _yolo_loaded_
     end
 end
 
-function _yolo_cleanup --description "Clear yolo's transient global env state"
-    set -e _yolo_extra_env
-    set -e _yolo_loaded_env_names
-    set -e _yolo_loaded_env_values
-end
-
 function _yolo_usage --description "Print yolo usage"
     set -l env_file $argv[1]
 
@@ -78,19 +58,18 @@ function _yolo_usage --description "Print yolo usage"
     end
 
     echo >&2
-    echo "Run a command inside a sandboxed environment (bwrap on Linux, sandbox-exec on macOS)." >&2
+    echo "Run a command with environment overrides from flags or .env.toml." >&2
     echo >&2
     echo "Options:" >&2
     echo "  --help, -h          Show this help message" >&2
     echo "  --list              List all available env groups in .env.toml" >&2
-    echo "  --setenv NAME       Pass NAME from parent env into the sandbox" >&2
-    echo "  --setenv NAME=VAL   Set NAME to VAL in the sandbox" >&2
-    echo "  --setenv NAME=      Unset NAME in the sandbox (overrides inherited)" >&2
+    echo "  --setenv NAME       Preserve NAME from the parent environment" >&2
+    echo "  --setenv NAME=VAL   Set NAME to VAL for the command" >&2
+    echo "  --setenv NAME=      Unset NAME for the command" >&2
     echo "                      (can be specified multiple times)" >&2
     echo "  --loadenv GROUP     Load env variables from .env.toml under [GROUP]" >&2
     echo "                      (empty env values unset variables; argv=[...] adds args)" >&2
     echo "                      (can be specified multiple times)" >&2
-    echo "  --yolo              Skip sandbox; only apply --setenv/--loadenv changes" >&2
     echo >&2
     echo "Environment file: $env_file" >&2
     echo >&2
@@ -103,14 +82,16 @@ end
 
 function _yolo_add_setenv_arg --description "Apply one --setenv argument to parser state" --no-scope-shadowing
     set -l setenv_arg $argv[1]
+    set -l name $setenv_arg
+    set -l value
     if string match -q '*=*' -- $setenv_arg
-        set -l name (string replace -r '=.*' '' -- $setenv_arg)
-        set -l value (string replace -r '^[^=]*=' '' -- $setenv_arg)
-        set -a loaded_env_names $name
-        set -a loaded_env_values "$value"
-    else
-        set -a extra_env_names $setenv_arg
+        set name (string replace -r '=.*' '' -- $setenv_arg)
+        set value (string replace -r '^[^=]*=' '' -- $setenv_arg)
+    else if set -q $name
+        set value $$name
     end
+    set -a loaded_env_names $name
+    set -a loaded_env_values "$value"
 end
 
 function _yolo_add_loadenv_group --description "Load one env group into parser state" --no-scope-shadowing
@@ -134,328 +115,6 @@ function _yolo_add_loadenv_group --description "Load one env group into parser s
             set -a loaded_env_values "$m[3]"
         end
     end
-end
-
-function _yolo_tool_rw_paths --description "Emit tool-specific writable state paths"
-    switch $argv[1]
-        case claude codex
-            for p in $HOME/.claude $HOME/.claude.json $HOME/.codex
-                test -e "$p"; and echo "$p"
-            end
-    end
-end
-
-function _yolo_run_passthrough --description "Run command without sandbox, preserving env mutations"
-    set -l env_args (_yolo_build_env_args)
-    if test (count $env_args) -gt 0
-        _yolo_print_cmd env $env_args -- $argv
-        env $env_args $argv
-    else
-        _yolo_print_cmd $argv
-        $argv
-    end
-end
-
-function _yolo_dispatch --description "Run the OS-specific sandbox backend"
-    set -l os (uname -s)
-    switch $os
-        case Linux
-            if not command -q bwrap
-                echo "bwrap is not installed or not on PATH" >&2
-                return 1
-            end
-            _yolo_bwrap $argv
-        case Darwin
-            if not command -q sandbox-exec
-                echo "sandbox-exec is not available" >&2
-                return 1
-            end
-            _yolo_sandbox_exec $argv
-        case '*'
-            echo "unsupported OS: $os" >&2
-            return 1
-    end
-end
-
-function _yolo_parse_args --description "Parse argv into ro_paths, rw_paths, command_args" --no-scope-shadowing
-    # argv: ro_paths... -- rw_paths... -- command_args...
-    # Sets variables in caller scope: ro_paths, rw_paths, command_args
-    set -l section ro
-    for arg in $argv
-        if test "$arg" = --
-            if test $section = ro
-                set section rw
-            else
-                set section cmd
-            end
-            continue
-        end
-        switch $section
-            case ro
-                set -a ro_paths $arg
-            case rw
-                set -a rw_paths $arg
-            case cmd
-                set -a command_args $arg
-        end
-    end
-end
-
-function _yolo_bwrap --description "Run command in bwrap sandbox"
-    # argv: ro_paths... -- rw_paths... -- command_args...
-    set -l ro_paths
-    set -l rw_paths
-    set -l command_args
-    _yolo_parse_args $argv
-
-    set -l workdir (pwd -P)
-    set -l sys_prefixes /usr /bin /lib /lib64 /etc
-    set -l uid (id -u)
-
-    set -l bwrap_args \
-        --proc /proc \
-        --dev /dev \
-        --tmpfs /tmp \
-        --unshare-all \
-        --share-net \
-        --die-with-parent
-
-    # Dotfile
-    if test -d $HOME/dotfiles
-        set -a bwrap_args --ro-bind $HOME/dotfiles $HOME/dotfiles
-    end
-
-    # X11 display socket (must come after --tmpfs /tmp)
-    if test -d /tmp/.X11-unix
-        set -a bwrap_args --ro-bind /tmp/.X11-unix /tmp/.X11-unix
-    end
-
-    # Claude Code tmpdir (rw, must come after --tmpfs /tmp)
-    set -l claude_tmpdir /tmp/claude-$uid
-    if test -d $claude_tmpdir
-        set -a bwrap_args --bind $claude_tmpdir $claude_tmpdir
-    end
-
-    # Wayland display socket
-    if set -q WAYLAND_DISPLAY; and set -q XDG_RUNTIME_DIR; and test -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
-        set -a bwrap_args --ro-bind "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
-    end
-
-    set -l ro_seen
-
-    # Helper: add ro-bind if path exists and not seen
-    # (inlined as a function would not see our local variables)
-    function _bwrap_ro --no-scope-shadowing
-        for p in $argv
-            if test -e $p; and not contains -- $p $ro_seen
-                set -a ro_seen $p
-                set -a bwrap_args --ro-bind $p $p
-            end
-        end
-    end
-
-    function _bwrap_setenv_from_parent --no-scope-shadowing
-        for env_name in $argv
-            if set -q $env_name
-                set -a bwrap_args --setenv $env_name $$env_name
-            end
-        end
-    end
-
-    # System mounts (ro)
-    _bwrap_ro $sys_prefixes
-
-    # DNS resolver runtime mounts
-    if test -e /etc/resolv.conf
-        set -l resolv_source (readlink -f -- /etc/resolv.conf)
-        if test -n "$resolv_source"; and string match -q '/run/*' $resolv_source
-            set -l runtime_dir (dirname -- $resolv_source)
-            set -l current /run
-            set -a bwrap_args --dir $current
-            for component in (string split '/' (string replace '/run/' '' $runtime_dir))
-                set current $current/$component
-                set -a bwrap_args --dir $current
-            end
-            _bwrap_ro $runtime_dir
-        end
-    end
-
-    # Command and extra ro paths
-    set -l home_prefixes $HOME/.npm $HOME/.cargo $HOME/.local
-    for candidate in $ro_paths
-        set -l skip false
-        for prefix in $sys_prefixes
-            if test $candidate = $prefix; or string match -q "$prefix/*" $candidate
-                set skip true
-                break
-            end
-        end
-        test $skip = true; and continue
-        if test $candidate = $workdir; or string match -q "$workdir/*" $candidate
-            continue
-        end
-        set -l matched false
-        for prefix in $home_prefixes
-            if test -e $prefix; and string match -q "$prefix/*" $candidate
-                _bwrap_ro $prefix
-                set matched true
-                break
-            end
-        end
-        if test $matched = false
-            _bwrap_ro (dirname -- $candidate)
-        end
-    end
-
-    # Git/SSH state (ro)
-    _bwrap_ro $HOME/.gitconfig $HOME/.git-credentials $HOME/.config/git $HOME/.ssh $HOME/.config/fish $HOME/.agents
-
-    # Developer toolchains (ro) — pyenv, uv-managed Pythons, user pip installs,
-    # cargo, bun, micromamba. Required so shebangs, venv symlinks, and pre-commit
-    # shims resolve inside the sandbox.
-    _bwrap_ro $HOME/.pyenv $HOME/.cargo $HOME/.bun $HOME/micromamba
-
-    # X auth cookie (ro)
-    if set -q XAUTHORITY; and test -e "$XAUTHORITY"
-        _bwrap_ro $XAUTHORITY
-    end
-
-    # Working directory (rw)
-    if test -e $workdir
-        set -a bwrap_args --bind $workdir $workdir
-    end
-
-    # If current directory is in a git worktree, also bind the actual git repo directory
-    set -l git_worktree_dir (_yolo_get_git_worktree_dir)
-    if test -n "$git_worktree_dir"
-        set -a bwrap_args --bind "$git_worktree_dir" "$git_worktree_dir"
-    end
-
-    # Cache + Lark CLI state + extra rw paths
-    if test -e $HOME/.cache
-        set -a bwrap_args --bind $HOME/.cache $HOME/.cache
-    end
-    if test -e $HOME/.local
-        set -a bwrap_args --bind $HOME/.local $HOME/.local
-    end
-    if test -e $HOME/.lark-cli
-        set -a bwrap_args --bind $HOME/.lark-cli $HOME/.lark-cli
-    end
-    for p in $rw_paths
-        if test -e $p
-            set -a bwrap_args --bind $p $p
-        end
-    end
-
-    # Environment
-    set -a bwrap_args \
-        --chdir $workdir \
-        --setenv HOME $HOME \
-        --setenv PATH (string join ':' $PATH) \
-        --setenv PWD $workdir
-
-    # bwrap user namespace maps only our UID; root-owned files appear as
-    # nobody:nobody inside the sandbox.  SSH rejects included config files
-    # not owned by root or the current user, so /etc/ssh/ssh_config.d/*.conf
-    # fails.  Skip system ssh_config to avoid the ownership check.
-    if not set -q GIT_SSH_COMMAND
-        set -a bwrap_args --setenv GIT_SSH_COMMAND "ssh -F /dev/null"
-    end
-
-    _bwrap_setenv_from_parent \
-        DISPLAY WAYLAND_DISPLAY XAUTHORITY XDG_RUNTIME_DIR \
-        TERM COLORTERM LANG LC_ALL NO_COLOR \
-        HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY \
-        http_proxy https_proxy all_proxy no_proxy \
-        GIT_SSH_COMMAND
-
-    # Extra env variables from --setenv flags
-    _bwrap_setenv_from_parent $_yolo_extra_env
-
-    # Env variables from --loadenv / --setenv NAME=VALUE (empty value = unset)
-    set -l count (count $_yolo_loaded_env_names)
-    if test $count -gt 0
-        for i in (seq $count)
-            set -l name $_yolo_loaded_env_names[$i]
-            set -l value $_yolo_loaded_env_values[$i]
-            if test -z "$value"
-                set -a bwrap_args --unsetenv $name
-            else
-                set -a bwrap_args --setenv $name $value
-            end
-        end
-    end
-
-    functions -e _bwrap_ro _bwrap_setenv_from_parent
-    _yolo_print_cmd bwrap $bwrap_args -- $command_args
-    bwrap $bwrap_args $command_args
-end
-
-function _yolo_sandbox_exec --description "Run command in macOS sandbox-exec"
-    # argv: ro_paths... -- rw_paths... -- command_args...
-    set -l ro_paths
-    set -l rw_paths
-    set -l command_args
-    _yolo_parse_args $argv
-
-    set -l workdir (pwd -P)
-
-    # Build SBPL profile
-    # Allow all reads; sandbox restricts writes to workdir, cache, tmp, and tool state.
-    set -l profile "(version 1)
-(deny default)
-(allow network*)
-(allow process*)
-(allow sysctl-read)
-(allow mach*)
-(allow ipc-posix-shm*)
-(allow signal)
-(allow file-read*)
-(allow file-ioctl)
-(allow file-write* (subpath \"/dev\"))
-(allow file-write* (subpath \"/tmp\"))
-(allow file-write* (subpath \"/private/tmp\"))
-(allow file-write* (subpath \"/private/var/folders\"))
-(allow file-write* (subpath \"/Users/bytedance/Library/Application Support/lark-cli\"))
-(allow file-write* (subpath \"/Users/bytedance/.lark-cli/\"))
-
-; Working directory (rw)
-(allow file-write* (subpath \"$workdir\"))"
-
-    # If current directory is in a git worktree, also allow access to the actual git repo directory
-    set -l git_worktree_dir (_yolo_get_git_worktree_dir)
-    if test -n "$git_worktree_dir"
-        set profile "$profile
-(allow file-write* (subpath \"$git_worktree_dir\"))"
-    end
-
-    set profile "$profile
-; Cache (rw)
-(allow file-write* (subpath \"$HOME/.cache\"))"
-
-    # Extra rw paths (tool state)
-    for p in $rw_paths
-        if test -e $p
-            if test -d $p
-                set profile "$profile
-(allow file-write* (subpath \"$p\"))"
-            else
-                set profile "$profile
-(allow file-write* (literal \"$p\"))"
-            end
-        end
-    end
-
-    # Build env modifier args for sandbox-exec (empty value = unset)
-    set -l env_args (_yolo_build_env_args)
-
-    echo "+ sandbox-exec -p '$profile'" $command_args >&2
-    if test (count $env_args) -gt 0
-        env $env_args sandbox-exec -p $profile $command_args
-    else
-        sandbox-exec -p $profile $command_args
-    end
-    return $status
 end
 
 function _yolo_list_env_groups --description "List all env groups from .env.toml"
@@ -618,13 +277,10 @@ function _yolo_load_env_group --description "Parse .env.toml and return KEY=VALU
     end <"$toml_file"
 end
 
-function yolo --description "Run a command in a sandbox"
-    # Parse yolo's own flags
-    set -l extra_env_names
+function yolo --description "Run a command with environment overrides"
     set -l loaded_env_names
     set -l loaded_env_values
     set -l loaded_argv
-    set -l passthrough false
     set -l positional
     set -l i 1
     set -l env_file (dirname (status filename))/.env.toml
@@ -658,8 +314,6 @@ function yolo --description "Run a command in a sandbox"
                 end
                 _yolo_add_loadenv_group "$env_file" $argv[$i]
                 or return 1
-            case --yolo
-                set passthrough true
             case '*'
                 # First non-flag argument starts the command; collect the rest as-is
                 set positional $argv[$i..-1]
@@ -696,15 +350,7 @@ function yolo --description "Run a command in a sandbox"
         return 1
     end
 
-    set -l real_path (readlink -f -- $original_path)
     set -l tool_name (basename -- $original_path)
-
-    # Collect ro paths (command binary and its resolved path)
-    set -l ro_paths $original_path $real_path
-
-    set -l rw_paths (_yolo_tool_rw_paths $tool_name)
-
-    # Build command with tool-specific flags
     set -l command_args $original_path
     switch $tool_name
         case codex
@@ -715,21 +361,12 @@ function yolo --description "Run a command in a sandbox"
     set -a command_args $loaded_argv
     set -a command_args $command_argv
 
-    # Export extra env for sandbox backends
-    set -g _yolo_extra_env $extra_env_names
-    set -g _yolo_loaded_env_names $loaded_env_names
-    set -g _yolo_loaded_env_values $loaded_env_values
-
-    # --yolo: skip sandbox, only apply env mutations.
-    if $passthrough
-        _yolo_run_passthrough $command_args
-        set -l ret $status
-        _yolo_cleanup
-        return $ret
+    set -l env_args (_yolo_build_env_args)
+    if test (count $env_args) -gt 0
+        _yolo_print_cmd env $env_args -- $command_args
+        env $env_args $command_args
+    else
+        _yolo_print_cmd $command_args
+        $command_args
     end
-
-    _yolo_dispatch $ro_paths -- $rw_paths -- $command_args
-    set -l ret $status
-    _yolo_cleanup
-    return $ret
 end
