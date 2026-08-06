@@ -4,9 +4,9 @@
       "rev": "645d108a5242ec7b378cbe643eb6d04d4223f034",
       "src": "https://github.com/stevearc/aerial.nvim"
     },
-    "codediff.nvim": {
-      "rev": "2253030fc17c8356a2ff1026f25cb9b570bdd91f",
-      "src": "https://github.com/esmuellert/codediff.nvim"
+    "diffview-plus.nvim": {
+      "rev": "62dc5adf4e77489a2a6d3bf36ef6e4ac5738b634",
+      "src": "https://github.com/dlyongemallo/diffview-plus.nvim"
     },
     "gitsigns.nvim": {
       "rev": "6d808f99bd63303646794406e270bd553ad7792e",

@@ -1,8 +1,14 @@
 {
-  "hooks": {},
+  "attribution": {
+    "commit": ""
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "defaultMode": "auto"
   },
+  "hooks": {},
+  "disableAgentView": true,
+  "disableWorkflows": true,
   "enabledPlugins": {
     "codex@openai-codex": false
   },
@@ -15,6 +21,7 @@
     }
   },
   "skipWebFetchPreflight": true,
-  "preferredNotifChannel": "kitty",
-  "awaySummaryEnabled": false
+  "effortLevel": "max",
+  "awaySummaryEnabled": false,
+  "preferredNotifChannel": "kitty"
 }

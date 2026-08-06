@@ -37,8 +37,8 @@ vim.pack.add({
 	-- UI / navigation
 	{ src = "https://github.com/folke/which-key.nvim" },
 	{ src = "https://github.com/stevearc/aerial.nvim" },
-	{ src = "https://github.com/esmuellert/codediff.nvim" },
-	-- { src = "https://github.com/lewis6991/gitsigns.nvim" },
+	{ src = "https://github.com/dlyongemallo/diffview-plus.nvim" },
+	{ src = "https://github.com/lewis6991/gitsigns.nvim" },
 	{ src = "https://github.com/ojroques/nvim-osc52" },
 
 	-- File / file-type integrations
@@ -83,8 +83,7 @@ require("plugins.treesitter")
 require("plugins.lsp")
 require("plugins.telescope")
 require("plugins.whichkey")
-require("plugins.codediff")
--- require("plugins.git")
+require("plugins.git")
 require("plugins.symboltable")
 require("plugins.osc52")
 require("plugins.markdown")

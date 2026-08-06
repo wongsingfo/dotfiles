@@ -5,6 +5,65 @@ set -e
 # break a relative ${BASH_SOURCE[0]} (e.g. when invoked as ./setup_linux.sh).
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+GIT_TARGET_VERSION="2.55.0"
+GIT_SOURCE_ARCHIVE="git-${GIT_TARGET_VERSION}.tar.xz"
+GIT_SOURCE_SHA256="457fdb04dc8728e007d4688695e6912e6f680727920f2a40bf11eacc17505357"
+GIT_SOURCE_URL="https://www.kernel.org/pub/software/scm/git/${GIT_SOURCE_ARCHIVE}"
+
+function ensure_git_version() {
+    local current_git_version
+    current_git_version="$(git --version | awk '{print $3}')"
+
+    if dpkg --compare-versions "$current_git_version" ge "$GIT_TARGET_VERSION"; then
+        echo "[git] Git $current_git_version already satisfies >= $GIT_TARGET_VERSION."
+        return
+    fi
+
+    echo "[git] Git $current_git_version is older than $GIT_TARGET_VERSION; building from source..."
+    sudo apt-get install -y \
+        gettext libcurl4-openssl-dev libexpat1-dev libssl-dev perl xz-utils zlib1g-dev
+
+    local git_build_dir
+    local git_source_dir
+    git_build_dir="$(mktemp -d)"
+    git_source_dir="$git_build_dir/git-${GIT_TARGET_VERSION}"
+
+    (
+        trap 'rm -rf "$git_build_dir"' EXIT
+
+        curl --fail --location --show-error \
+            "$GIT_SOURCE_URL" \
+            --output "$git_build_dir/$GIT_SOURCE_ARCHIVE"
+        printf '%s  %s\n' \
+            "$GIT_SOURCE_SHA256" \
+            "$git_build_dir/$GIT_SOURCE_ARCHIVE" \
+            | sha256sum --check -
+        tar -xJf "$git_build_dir/$GIT_SOURCE_ARCHIVE" -C "$git_build_dir"
+
+        make -C "$git_source_dir" \
+            -j"$(nproc)" \
+            prefix=/usr/local \
+            NO_RUST=YesPlease \
+            NO_TCLTK=YesPlease \
+            all
+        "$git_source_dir/bin-wrappers/git" --version
+        sudo make -C "$git_source_dir" \
+            prefix=/usr/local \
+            NO_RUST=YesPlease \
+            NO_TCLTK=YesPlease \
+            install
+    )
+
+    export PATH="/usr/local/bin:$PATH"
+    hash -r
+    current_git_version="$(git --version | awk '{print $3}')"
+    if ! dpkg --compare-versions "$current_git_version" ge "$GIT_TARGET_VERSION"; then
+        echo "[git] Error: expected Git >= $GIT_TARGET_VERSION, found $current_git_version." >&2
+        exit 1
+    fi
+    echo "[git] Git $current_git_version installed successfully at $(command -v git)."
+}
+
 function show_help() {
     cat <<EOF
 Usage: $0 [options]
@@ -57,6 +116,10 @@ if [ -f /etc/debian_version ]; then
     if apt-cache show "zoxide" &>/dev/null; then APT_PACKAGES+=("zoxide"); fi
 
     sudo apt-get install -y "${APT_PACKAGES[@]}"
+
+    # diffview-plus.nvim requires Git >= 2.31. Pin the current upstream Git
+    # release when an older distro package (such as Debian buster's) is found.
+    ensure_git_version
 
     # Install pynvim via pip if apt package unavailable
     if ! python3 -c "import pynvim" &>/dev/null; then
