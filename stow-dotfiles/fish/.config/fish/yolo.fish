@@ -350,14 +350,7 @@ function yolo --description "Run a command with environment overrides"
         return 1
     end
 
-    set -l tool_name (basename -- $original_path)
     set -l command_args $original_path
-    switch $tool_name
-        case codex
-            set -a command_args --dangerously-bypass-approvals-and-sandbox
-        case claude
-            set -a command_args --permission-mode bypassPermissions
-    end
     set -a command_args $loaded_argv
     set -a command_args $command_argv
 
