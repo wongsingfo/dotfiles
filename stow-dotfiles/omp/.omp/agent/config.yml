@@ -1,0 +1,20 @@
+modelRoles:
+  default: openai-codex/gpt-5.6-sol
+symbolPreset: nerd
+theme:
+  dark: dark
+setupVersion: 1
+startup:
+  showSplash: false
+  quiet: true
+defaultThinkingLevel: max
+dev:
+  autoqaConsent: denied
+  autoqa: false
+display:
+  shimmer: disabled
+  smoothStreaming: false
+hideThinkingBlock: true
+terminal:
+  showImages: true
+treeFilterMode: no-tools
