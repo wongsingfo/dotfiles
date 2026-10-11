@@ -197,7 +197,9 @@ vim.keymap.set("v", "u", node_decremental, { desc = "Shrink TS selection" })
 vim.o.foldmethod = "expr"
 vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 vim.o.foldnestmax = 3
-vim.o.foldenable = false -- Disable folding at startup
+vim.opt.foldenable = true
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
 
 -- Work around Neovim #40290: the Treesitter OptionSet refresher can
 -- access stale buffers when plugins change window-local fold options.
